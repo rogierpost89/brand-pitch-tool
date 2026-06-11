@@ -1,7 +1,8 @@
 {
   "functions": {
     "src/app/api/analyse-brand/route.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 3009
     },
     "src/app/api/generate/route.ts": {
       "maxDuration": 60
