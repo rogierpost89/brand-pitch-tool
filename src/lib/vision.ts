@@ -47,6 +47,7 @@ Rules:
   return JSON.parse(match[0]) as BrandAssets
 }
 
+// Expects a JPEG buffer — client compresses to JPEG via canvas.toBlob before upload
 export async function extractAssetsFromImage(
   screenshotBuffer: Buffer,
   brandUrl: string
@@ -87,6 +88,7 @@ Return only the JSON object.`,
   return JSON.parse(match[0]) as BrandAssets
 }
 
+// Expects a JPEG buffer — client compresses to JPEG via canvas.toBlob before upload
 export async function extractBrandContentFromImage(
   screenshotBuffer: Buffer,
   brandUrl: string

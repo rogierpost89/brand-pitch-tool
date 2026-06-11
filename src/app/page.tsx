@@ -176,6 +176,12 @@ export default function Step1() {
       return
     }
 
+    const MAX_FILE_MB = 20
+    if (file.size > MAX_FILE_MB * 1024 * 1024) {
+      updateBrand(idx, { error: `File too large (max ${MAX_FILE_MB} MB). Compress or crop the file and try again.` })
+      return
+    }
+
     updateBrand(idx, { loading: true, error: null, assets: null, brandContent: null })
 
     const formData = new FormData()
