@@ -48,13 +48,30 @@ export default function Step1() {
     updateBrand(idx, { loading: false, assets: data.assets })
   }
 
+  async function compressImage(file: File): Promise<Blob> {
+    return new Promise(resolve => {
+      const img = new Image()
+      const objectUrl = URL.createObjectURL(file)
+      img.onload = () => {
+        const scale = Math.min(1, 1280 / img.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob(blob => { URL.revokeObjectURL(objectUrl); resolve(blob!) }, 'image/jpeg', 0.80)
+      }
+      img.src = objectUrl
+    })
+  }
+
   async function analyseFallback(idx: number) {
     const entry = brands[idx]
     if (!entry.fallbackFile) return
     updateBrand(idx, { loading: true, error: null })
 
+    const compressed = await compressImage(entry.fallbackFile)
     const formData = new FormData()
-    formData.append('screenshot', entry.fallbackFile)
+    formData.append('screenshot', compressed, 'screenshot.jpg')
     formData.append('url', entry.url || 'https://unknown.com')
 
     const res = await fetch('/api/analyse-brand', { method: 'POST', body: formData })
