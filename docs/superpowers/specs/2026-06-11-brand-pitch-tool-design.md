@@ -3,7 +3,7 @@ _2026-06-11_
 
 ## Overview
 
-A personal web tool for Rogier (Pineapple Drinks Club) to generate branded HTML pitch decks for potential retail buyers. The user pastes a brand's website URL, uploads a content YAML and a value-chain Excel, and downloads a self-contained HTML deck styled in the brand's visual identity.
+A personal web tool for Rogier (Pineapple Drinks Club) to generate HTML pitch decks for potential retail buyers. A single deck can pitch one or multiple brands in one go. The PDC house style (black/yellow/white) is always the visual template; brand identity enters only through logos, pack shots, and photography — never through color or font theming.
 
 ---
 
@@ -27,15 +27,17 @@ A personal web tool for Rogier (Pineapple Drinks Club) to generate branded HTML 
 
 ## Brand Analysis
 
-When a URL is submitted the tool:
+When a brand URL is submitted the tool:
 1. Screenshots the page with Playwright
-2. Sends screenshot + the pineapple example as quality template to Claude Vision
-3. Claude returns a structured design analysis (colors, fonts, spacing, components) in the same YAML format as `examples/pineapple-drinks-club.md`
-4. Claude also identifies and returns product image URLs from the page
+2. Sends the screenshot to Claude Vision
+3. Claude extracts: brand logo URL, product image URLs, and a one-paragraph brand description
+4. The user can add multiple brands — each goes through this flow independently
 
-If the URL cannot be scraped, the user uploads screenshots directly — the same Claude Vision flow applies, no separate code path needed.
+If a URL cannot be scraped, the user uploads screenshots directly — the same Claude Vision flow applies.
 
-The PDC logo is always fetched from `https://pineappledrinks.com/wp-content/uploads/2025/02/Frame-76.png` and embedded as base64 in the output deck.
+The PDC logo is always fetched from `https://pineappledrinks.com/wp-content/uploads/2025/02/Frame-76.png` and embedded as base64 in every output deck.
+
+Claude Vision does **not** extract color/font tokens — the PDC design system is fixed.
 
 ---
 
@@ -43,33 +45,43 @@ The PDC logo is always fetched from `https://pineappledrinks.com/wp-content/uplo
 
 ### brand.yaml
 
+A deck can contain one or multiple brands. Each brand has its own `products` list.
+
 ```yaml
 buyer:
   company: "Albert Heijn"
   contact: "Jan de Vries"
 
-brand:
-  name: "La Mundial Barcelona"
-  url: "https://lamundialbarcelona.com"
-  intro: |
-    Wine-based aromatised sparkling beverages...
-
-products:
-  - id: clarea
-    name: "Clarea"
+brands:
+  - name: "La Mundial Barcelona"
+    url: "https://lamundialbarcelona.com"
     intro: |
-      Wine-based sparkling with peach notes...
-    tagline: "Escape the ordinary, enjoy a frenzy of freshness"
-    usps:
-      - "Peachy notes · exotic spices · fine bubbles"
-      - "Locally grown grapes · Barcelona province"
-      - "Radically different — new category"
-    why_it_sells:
-      - "New wine-based fizz — growing demand for lighter alternatives"
-      - "Golden colour drives impulse purchase at shelf"
-      - "Anchors alongside Cava and Prosecco"
-    annual_volume_btl: 2400
-    image_url: ""   # optional override; tool scrapes automatically if blank
+      Wine-based aromatised sparkling beverages...
+    products:
+      - id: clarea
+        name: "Clarea"
+        intro: |
+          Wine-based sparkling with peach notes...
+        tagline: "Escape the ordinary, enjoy a frenzy of freshness"
+        usps:
+          - "Peachy notes · exotic spices · fine bubbles"
+          - "Locally grown grapes · Barcelona province"
+          - "Radically different — new category"
+        why_it_sells:
+          - "New wine-based fizz — growing demand for lighter alternatives"
+          - "Golden colour drives impulse purchase at shelf"
+          - "Anchors alongside Cava and Prosecco"
+        annual_volume_btl: 2400
+        image_url: ""   # optional override; tool scrapes automatically if blank
+
+  - name: "Roots Divino"
+    url: "https://www.finestroots.com"
+    intro: |
+      0% non-alcoholic aperitifs from the island of Lesbos...
+    products:
+      - id: rosso
+        name: "Aperitif Rosso"
+        ...
 ```
 
 ### value-chain.xlsx
@@ -121,7 +133,8 @@ All slides share:
 
 **5. Overview slide** _(one, final)_
 - Black header band with title + yellow vertical rule
-- Table: Product thumbnail + name / Type / Delivery Price / **Consumer RSP (bold)** / Retail Margin (yellow pill) / Annual Exp. Volume (btl)
+- Table: Product thumbnail + name / **Brand** / Type / Delivery Price / **Consumer RSP (bold)** / Retail Margin (yellow pill) / Annual Exp. Volume (btl)
+- Brand column identifies which brand each product belongs to (essential for multi-brand decks)
 - Volume values come from `brand.yaml` per product
 
 ---
@@ -141,13 +154,19 @@ The EN/NL toggle in the output deck switches between the two language versions c
 
 ## Slide Styling
 
-Brand tokens extracted by Claude Vision are applied to:
-- Background colors (title: ink, content slides: canvas)
-- Accent color (replaces `#f8d418` with brand primary)
-- Font stacks (display, body mono, UI)
-- Border radius, spacing scale
+The PDC house style is fixed and applies to every deck regardless of brand:
+- Background colors: `#000` (title/header bands), `#fff` (content slides)
+- Accent: `#f8d418` (accent bar, USP borders, RSP card fill, margin pills, yellow dividers)
+- Typography: Gill Sans (display), Courier New (body mono)
 
-The PDC design system (`examples/pineapple-drinks-club.md`) is the reference for token naming and quality.
+Brand identity enters only through:
+- Brand logo (embedded in title slide bottom-right, inverted white on black)
+- Product pack shots (bottle images in product intro + pricing slides)
+- Brand photography (hero image on title slide)
+
+Claude Vision still analyses the brand URL to extract product image URLs and the logo. It does **not** produce a color/font token set — the design is not themed per brand.
+
+The PDC design system (`examples/pineapple-drinks-club.md`) is the reference for visual quality.
 
 ---
 
