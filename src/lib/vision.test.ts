@@ -124,3 +124,39 @@ describe('extractBrandContentFromImage', () => {
     ).rejects.toThrow('no JSON')
   })
 })
+
+const MOCK_PDF_RESULT = {
+  assets: {
+    logoUrl: '',
+    heroImageUrl: '',
+    productImageUrls: [],
+    description: 'A premium spirits brand visible in the PDF.',
+  },
+  brandContent: MOCK_BRAND,
+}
+
+describe('extractFromPdf', () => {
+  it('returns assets and brand content from PDF via Claude document API', async () => {
+    mockCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: JSON.stringify(MOCK_PDF_RESULT) }],
+    })
+
+    const result = await extractFromPdf(
+      Buffer.from('fakepdfbytes'),
+      'https://example.com'
+    )
+    expect(result.assets.description).toContain('PDF')
+    expect(result.brandContent.name).toBe('Example Brand')
+    expect(result.brandContent.products).toHaveLength(1)
+  })
+
+  it('throws when Claude returns no JSON', async () => {
+    mockCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: 'Cannot read this document.' }],
+    })
+
+    await expect(
+      extractFromPdf(Buffer.from('x'), 'https://example.com')
+    ).rejects.toThrow('no JSON')
+  })
+})

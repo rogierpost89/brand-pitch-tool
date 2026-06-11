@@ -153,6 +153,83 @@ Rules:
   return JSON.parse(match[0]) as ExtractedBrand
 }
 
+export async function extractFromPdf(
+  pdfBuffer: Buffer,
+  brandUrl: string
+): Promise<{ assets: BrandAssets; brandContent: ExtractedBrand }> {
+  const b64 = pdfBuffer.toString('base64')
+
+  const response = await client.messages.create({
+    model: 'claude-opus-4-8',
+    max_tokens: 4096,
+    messages: [{
+      role: 'user',
+      content: [
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        {
+          type: 'document',
+          source: { type: 'base64', media_type: 'application/pdf', data: b64 },
+        } as any,
+        {
+          type: 'text',
+          text: `This is a brand document for ${brandUrl}.
+
+Read all pages and extract both visual asset descriptions and brand content.
+Return ONLY a JSON object (no markdown):
+{
+  "assets": {
+    "logoUrl": "",
+    "heroImageUrl": "",
+    "productImageUrls": [],
+    "description": "one paragraph describing the brand based on what you see in the document"
+  },
+  "brandContent": {
+    "name": "brand name",
+    "intro": "2-3 sentence brand intro for a B2B pitch deck",
+    "products": [
+      {
+        "id": "slug-of-product-name",
+        "name": "Product Name",
+        "intro": "2-3 sentence product description",
+        "tagline": "short punchy tagline",
+        "usps": [
+          "USP 1 — key attribute · detail",
+          "USP 2 — key attribute · detail",
+          "USP 3 — key attribute · detail"
+        ],
+        "why_it_sells": [
+          "Reason 1 why a retailer should stock this",
+          "Reason 2",
+          "Reason 3"
+        ],
+        "annual_volume_btl": 0,
+        "image_url": ""
+      }
+    ]
+  }
+}
+
+Rules:
+- logoUrl, heroImageUrl, productImageUrls must always be empty strings / empty array (no real URLs available from a PDF)
+- description should be a rich one-paragraph summary of the brand based on all pages
+- id must be a lowercase slug (e.g. "clarea", "aperitif-rosso")
+- usps should use " · " as separator for sub-points
+- why_it_sells should be retailer-facing reasons (margin, trend, consumer demand)
+- annual_volume_btl is always 0
+- image_url is always ""
+- Include all products found in the document
+- Return only the JSON object`,
+        },
+      ],
+    }],
+  })
+
+  const text = response.content[0].type === 'text' ? response.content[0].text : ''
+  const match = text.match(/\{[\s\S]*\}/)
+  if (!match) throw new Error('Claude returned no JSON from PDF')
+  return JSON.parse(match[0]) as { assets: BrandAssets; brandContent: ExtractedBrand }
+}
+
 export async function extractBrandContent(
   page: ScrapedPage,
   brandUrl: string,
