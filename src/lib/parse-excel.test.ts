@@ -33,7 +33,7 @@ describe('parseExcel', () => {
   it('throws when a required row label is missing', () => {
     const incompleteRows = SAMPLE_ROWS.slice(0, 3) // missing RSP and margin rows
     const buf = buildWorkbook(incompleteRows)
-    expect(() => parseExcel(buf)).toThrow('Missing rows')
+    expect(() => parseExcel(buf)).toThrow('Could not find pricing data')
   })
 
   it('skips empty product columns', () => {

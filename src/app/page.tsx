@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { BrandAssets, ExtractedBrand, ExtractedProduct } from '@/lib/types'
 
@@ -37,6 +37,27 @@ export default function Step1() {
   const [brands, setBrands] = useState<BrandEntry[]>([
     { url: '', assets: null, brandContent: null, loading: false, error: null, showFallback: false, fallbackFile: null, contentOpen: true },
   ])
+
+  // Restore state when navigating back from Step 2
+  useEffect(() => {
+    const stored = sessionStorage.getItem('pdc:brands-assets')
+    if (!stored) return
+    try {
+      const parsed = JSON.parse(stored) as Array<{ url: string; assets: BrandAssets; brandContent: ExtractedBrand | null }>
+      if (parsed.length > 0) {
+        setBrands(parsed.map(b => ({
+          url: b.url,
+          assets: b.assets,
+          brandContent: b.brandContent,
+          loading: false,
+          error: null,
+          showFallback: false,
+          fallbackFile: null,
+          contentOpen: false, // collapsed by default when restoring
+        })))
+      }
+    } catch { /* ignore */ }
+  }, [])
 
   function updateBrand(idx: number, patch: Partial<BrandEntry>) {
     setBrands(prev => prev.map((b, i) => i === idx ? { ...b, ...patch } : b))
@@ -82,6 +103,32 @@ export default function Step1() {
       })
       return { ...b, brandContent: { ...bc, products } }
     }))
+  }
+
+  async function uploadProductImage(brandIdx: number, productIdx: number, file: File) {
+    // Compress and store as data URI so it gets embedded in the deck
+    return new Promise<void>(resolve => {
+      const img = new Image()
+      const objectUrl = URL.createObjectURL(file)
+      img.onload = () => {
+        const scale = Math.min(1, 800 / img.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob(blob => {
+          URL.revokeObjectURL(objectUrl)
+          if (!blob) return resolve()
+          const reader = new FileReader()
+          reader.onload = e => {
+            updateProduct(brandIdx, productIdx, { image_url: e.target?.result as string })
+            resolve()
+          }
+          reader.readAsDataURL(blob)
+        }, 'image/jpeg', 0.85)
+      }
+      img.src = objectUrl
+    })
   }
 
   function addProduct(brandIdx: number) {
@@ -388,14 +435,39 @@ export default function Step1() {
                               ))}
                             </div>
                           </div>
-                          <div className="w-40">
-                            <label className="text-xs text-[#f8d418] font-mono block mb-1">Annual vol. (btl)</label>
-                            <input
-                              type="number"
-                              className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
-                              value={product.annual_volume_btl}
-                              onChange={e => updateProduct(idx, pi, { annual_volume_btl: Number(e.target.value) })}
-                            />
+                          <div className="flex gap-4 items-end">
+                            <div className="w-40">
+                              <label className="text-xs text-[#f8d418] font-mono block mb-1">Annual vol. (btl)</label>
+                              <input
+                                type="number"
+                                className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+                                value={product.annual_volume_btl}
+                                onChange={e => updateProduct(idx, pi, { annual_volume_btl: Number(e.target.value) })}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label className="text-xs text-[#f8d418] font-mono block mb-1">Product photo</label>
+                              <div className="flex gap-2 items-center">
+                                {product.image_url ? (
+                                  <>
+                                    <img src={product.image_url} alt="Product" className="h-10 w-10 object-contain bg-zinc-800" />
+                                    <label className="cursor-pointer text-xs text-zinc-500 font-mono hover:text-white">
+                                      Replace
+                                      <input type="file" accept="image/*" className="hidden"
+                                        onChange={e => { const f = e.target.files?.[0]; if (f) uploadProductImage(idx, pi, f) }} />
+                                    </label>
+                                    <button className="text-zinc-600 hover:text-red-400 text-xs font-mono"
+                                      onClick={() => updateProduct(idx, pi, { image_url: '' })}>✕</button>
+                                  </>
+                                ) : (
+                                  <label className="cursor-pointer border border-zinc-600 text-zinc-400 text-xs font-mono px-3 py-2 hover:border-[#f8d418] hover:text-white transition-colors">
+                                    Upload photo
+                                    <input type="file" accept="image/*" className="hidden"
+                                      onChange={e => { const f = e.target.files?.[0]; if (f) uploadProductImage(idx, pi, f) }} />
+                                  </label>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
