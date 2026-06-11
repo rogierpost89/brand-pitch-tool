@@ -14,5 +14,5 @@ export function parseBrandYaml(content: string): YamlInput {
     throw new Error('brand.yaml missing required field: brands')
   }
 
-  return parsed as YamlInput
+  return parsed as unknown as YamlInput
 }
