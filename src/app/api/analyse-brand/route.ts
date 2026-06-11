@@ -1,25 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { scrapeBrandPage } from '@/lib/scrape'
-import { extractAssetsFromPage, extractAssetsFromImage, extractBrandContent } from '@/lib/vision'
+import { extractAssetsFromPage, extractAssetsFromImage, extractBrandContentFromImage, extractFromPdf, extractBrandContent } from '@/lib/vision'
 
 export const maxDuration = 60
+
+async function compressToJpeg(buffer: Buffer): Promise<Buffer> {
+  // Client compresses images to JPEG before upload; pass through as-is
+  return buffer
+}
 
 export async function POST(req: NextRequest) {
   try {
     const contentType = req.headers.get('content-type') || ''
 
-    // Fallback path: user uploaded a screenshot
     if (contentType.includes('multipart/form-data')) {
       const form = await req.formData()
       const url = (form.get('url') as string) || 'https://unknown.com'
-      const file = form.get('screenshot') as File | null
-      if (!file) return NextResponse.json({ error: 'No screenshot uploaded' }, { status: 400 })
+      const file = form.get('file') as File | null
+      if (!file) return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
 
+      const mime = file.type
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
-      const assets = await extractAssetsFromImage(buffer, url)
-      // No brandContent for screenshot path — user fills manually
-      return NextResponse.json({ assets })
+
+      if (mime === 'application/pdf') {
+        const { assets, brandContent } = await extractFromPdf(buffer, url)
+        return NextResponse.json({ assets, brandContent })
+      }
+
+      if (mime.startsWith('image/')) {
+        const compressed = await compressToJpeg(buffer)
+        const [assets, brandContent] = await Promise.all([
+          extractAssetsFromImage(compressed, url),
+          extractBrandContentFromImage(compressed, url),
+        ])
+        return NextResponse.json({ assets, brandContent })
+      }
+
+      return NextResponse.json(
+        { error: 'Unsupported file type. Upload PNG, JPG, or PDF.' },
+        { status: 400 }
+      )
     }
 
     // Primary path: scrape via Jina Reader
