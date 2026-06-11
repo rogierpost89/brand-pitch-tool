@@ -15,9 +15,7 @@ export default function Step2() {
   const [brandsAssets, setBrandsAssets] = useState<BrandAssetEntry[]>([])
   const [company, setCompany] = useState('')
   const [contact, setContact] = useState('')
-  const [excelUrl, setExcelUrl] = useState('')
   const [excelFile, setExcelFile] = useState<File | null>(null)
-  const [fetchingUrl, setFetchingUrl] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [priceRows, setPriceRows] = useState<PriceRow[]>([])
@@ -28,28 +26,6 @@ export default function Step2() {
     if (!stored) { router.push('/'); return }
     setBrandsAssets(JSON.parse(stored) as BrandAssetEntry[])
   }, [router])
-
-  async function fetchExcelFromUrl() {
-    if (!excelUrl) return
-    setFetchingUrl(true)
-    setError(null)
-
-    const res = await fetch('/api/fetch-excel', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: excelUrl }),
-    })
-
-    const data = await res.json()
-    setFetchingUrl(false)
-
-    if (!res.ok) {
-      setError(data.error)
-      return
-    }
-
-    setPriceRows(data.priceRows)
-  }
 
   async function uploadExcelFile() {
     if (!excelFile) return
@@ -128,57 +104,38 @@ export default function Step2() {
 
       {/* Value chain Excel */}
       <div className="border border-zinc-800 p-5 mb-4">
-        <div className="text-xs font-bold tracking-[2px] uppercase text-zinc-600 mb-4">Value Chain Excel</div>
-
-        {/* URL fetch */}
-        <div className="mb-4">
-          <label className="text-xs text-[#f8d418] font-mono block mb-1">
-            Paste your OneDrive or SharePoint share link
-          </label>
-          <div className="flex gap-2">
+        <div className="text-xs font-bold tracking-[2px] uppercase text-zinc-600 mb-1">Value Chain Excel</div>
+        <p className="text-xs text-zinc-600 font-mono mb-4">
+          Download the latest version from SharePoint and upload it here. The tool will scan all tabs automatically.
+        </p>
+        <div className="flex gap-2 items-center">
+          <label className="cursor-pointer border border-zinc-600 text-zinc-400 text-xs font-mono px-3 py-2 hover:border-[#f8d418] hover:text-white transition-colors">
+            {excelFile ? excelFile.name : 'Choose value-chain.xlsx'}
             <input
-              className="flex-1 bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
-              placeholder="https://onedrive.live.com/..."
-              value={excelUrl}
-              onChange={e => setExcelUrl(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && fetchExcelFromUrl()}
+              type="file"
+              accept=".xlsx"
+              className="hidden"
+              onChange={e => {
+                const f = e.target.files?.[0] || null
+                setExcelFile(f)
+                if (f) {
+                  setUploadingFile(true)
+                  setError(null)
+                  const fd = new FormData()
+                  fd.append('excel', f)
+                  fetch('/api/parse-excel', { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(data => {
+                      setUploadingFile(false)
+                      if (data.error) { setError(data.error); return }
+                      setPriceRows(data.priceRows)
+                    })
+                    .catch(() => setUploadingFile(false))
+                }
+              }}
             />
-            <button
-              className="bg-zinc-700 text-white text-xs font-bold tracking-[2px] uppercase px-4 py-2 disabled:opacity-40 hover:bg-zinc-600"
-              onClick={fetchExcelFromUrl}
-              disabled={fetchingUrl || !excelUrl}
-            >
-              {fetchingUrl ? 'Fetching…' : 'Fetch'}
-            </button>
-          </div>
-          <p className="text-xs text-zinc-600 font-mono mt-1">
-            In SharePoint: right-click the file → Copy link. Or use the direct download URL.
-          </p>
-        </div>
-
-        {/* File upload fallback */}
-        <div className="border-t border-zinc-800 pt-4">
-          <p className="text-xs text-zinc-600 font-mono mb-2">or upload file directly</p>
-          <div className="flex gap-2 items-center">
-            <label className="cursor-pointer border border-zinc-600 text-zinc-400 text-xs font-mono px-3 py-1.5 hover:border-[#f8d418] hover:text-white transition-colors">
-              {excelFile ? excelFile.name : 'Choose .xlsx file'}
-              <input
-                type="file"
-                accept=".xlsx"
-                className="hidden"
-                onChange={e => setExcelFile(e.target.files?.[0] || null)}
-              />
-            </label>
-            {excelFile && (
-              <button
-                className="bg-zinc-700 text-white text-xs font-bold tracking-[2px] uppercase px-4 py-1.5 disabled:opacity-40 hover:bg-zinc-600"
-                onClick={uploadExcelFile}
-                disabled={uploadingFile}
-              >
-                {uploadingFile ? 'Uploading…' : 'Upload'}
-              </button>
-            )}
-          </div>
+          </label>
+          {uploadingFile && <span className="text-xs text-zinc-500 font-mono">Parsing…</span>}
         </div>
       </div>
 

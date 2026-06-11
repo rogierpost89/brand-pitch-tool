@@ -9,9 +9,24 @@ const ROW_LABELS: Record<keyof Omit<PriceRow, 'productId'> | 'productId', string
   margin: 'Off-trade retail margin %',
 }
 
+function findSheet(workbook: XLSX.WorkBook): XLSX.WorkSheet {
+  // Try each sheet until we find one containing the required row labels
+  for (const name of workbook.SheetNames) {
+    const sheet = workbook.Sheets[name]
+    const rows = XLSX.utils.sheet_to_json<(string | number)[]>(sheet, { header: 1 }) as (string | number)[][]
+    const col0 = rows.map(r => String(r[0] ?? '').toLowerCase())
+    const hasAll = Object.values(ROW_LABELS).every(label =>
+      col0.some(cell => cell.includes(label.toLowerCase()))
+    )
+    if (hasAll) return sheet
+  }
+  // Fall back to first sheet and let the missing-row error surface
+  return workbook.Sheets[workbook.SheetNames[0]]
+}
+
 export function parseExcel(buffer: Buffer): PriceRow[] {
   const workbook = XLSX.read(buffer, { type: 'buffer' })
-  const sheet = workbook.Sheets[workbook.SheetNames[0]]
+  const sheet = findSheet(workbook)
   const rows = XLSX.utils.sheet_to_json<(string | number)[]>(sheet, { header: 1 }) as (string | number)[][]
 
   const labelRowIndex: Partial<Record<keyof typeof ROW_LABELS, number>> = {}
