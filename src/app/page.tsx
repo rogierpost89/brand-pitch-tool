@@ -118,23 +118,44 @@ export default function Step1() {
 
             {entry.showFallback && (
               <div className="border border-zinc-700 p-3 bg-zinc-900">
-                <p className="text-xs text-zinc-400 font-mono mb-2">
-                  URL could not be scraped. Upload a screenshot instead:
+                <p className="text-xs text-zinc-400 font-mono mb-1">
+                  Automatic scraping is unavailable — upload a screenshot of the brand website instead.
                 </p>
-                <div className="flex gap-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="text-xs text-zinc-400 font-mono"
-                    onChange={e => updateBrand(idx, { fallbackFile: e.target.files?.[0] || null })}
-                  />
-                  <button
-                    className="bg-zinc-700 text-white text-xs font-bold tracking-[2px] uppercase px-3 py-1 disabled:opacity-40"
-                    onClick={() => analyseFallback(idx)}
-                    disabled={!entry.fallbackFile || entry.loading}
-                  >
-                    Analyse
-                  </button>
+                <p className="text-xs text-zinc-600 font-mono mb-3">
+                  Tip: open the site, press Cmd+Shift+4, capture the full page, then upload below.
+                </p>
+                <div className="flex gap-2 items-center">
+                  {!entry.fallbackFile ? (
+                    <label className="cursor-pointer border border-zinc-600 text-zinc-400 text-xs font-mono px-3 py-1.5 hover:border-zinc-400">
+                      Choose file
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => updateBrand(idx, { fallbackFile: e.target.files?.[0] || null })}
+                      />
+                    </label>
+                  ) : (
+                    <>
+                      <span className="text-xs text-zinc-400 font-mono truncate max-w-[180px]">
+                        {entry.fallbackFile.name}
+                      </span>
+                      <button
+                        className="text-zinc-600 hover:text-red-400 text-xs font-mono px-1"
+                        title="Remove file"
+                        onClick={() => updateBrand(idx, { fallbackFile: null })}
+                      >
+                        ✕
+                      </button>
+                      <button
+                        className="bg-[#f8d418] text-black text-xs font-bold tracking-[2px] uppercase px-3 py-1.5 disabled:opacity-40"
+                        onClick={() => analyseFallback(idx)}
+                        disabled={entry.loading}
+                      >
+                        {entry.loading ? 'Analysing…' : 'Analyse'}
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             )}

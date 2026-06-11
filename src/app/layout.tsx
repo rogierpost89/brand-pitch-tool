@@ -11,11 +11,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-zinc-950 text-white min-h-screen">
         <div className="max-w-2xl mx-auto px-6 py-10">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-3 h-3 bg-[#f8d418]" />
-            <span className="text-xs font-bold tracking-[3px] uppercase text-zinc-500">
-              Pineapple Drinks Club
-            </span>
+          <div className="flex items-center gap-4 mb-10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://pineappledrinks.com/wp-content/uploads/2025/02/Frame-76.png"
+              alt="Pineapple Drinks Club"
+              className="h-8 w-auto object-contain"
+              style={{ filter: 'invert(1)' }}
+            />
             <span className="text-xs tracking-[2px] uppercase text-zinc-700">
               Pitch Generator
             </span>
