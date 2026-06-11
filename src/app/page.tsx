@@ -1,101 +1,186 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import type { BrandAssets } from '@/lib/types'
+
+interface BrandEntry {
+  url: string
+  assets: BrandAssets | null
+  loading: boolean
+  error: string | null
+  showFallback: boolean
+  fallbackFile: File | null
+}
+
+export default function Step1() {
+  const router = useRouter()
+  const [brands, setBrands] = useState<BrandEntry[]>([
+    { url: '', assets: null, loading: false, error: null, showFallback: false, fallbackFile: null },
+  ])
+
+  function updateBrand(idx: number, patch: Partial<BrandEntry>) {
+    setBrands(prev => prev.map((b, i) => i === idx ? { ...b, ...patch } : b))
+  }
+
+  async function analyseUrl(idx: number) {
+    const entry = brands[idx]
+    if (!entry.url) return
+    updateBrand(idx, { loading: true, error: null, assets: null })
+
+    const res = await fetch('/api/analyse-brand', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: entry.url }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      if (data.fallback) {
+        updateBrand(idx, { loading: false, showFallback: true })
+      } else {
+        updateBrand(idx, { loading: false, error: data.error })
+      }
+      return
+    }
+
+    updateBrand(idx, { loading: false, assets: data.assets })
+  }
+
+  async function analyseFallback(idx: number) {
+    const entry = brands[idx]
+    if (!entry.fallbackFile) return
+    updateBrand(idx, { loading: true, error: null })
+
+    const formData = new FormData()
+    formData.append('screenshot', entry.fallbackFile)
+    formData.append('url', entry.url)
+
+    const res = await fetch('/api/analyse-brand', { method: 'POST', body: formData })
+    const data = await res.json()
+
+    if (!res.ok) {
+      updateBrand(idx, { loading: false, error: data.error })
+      return
+    }
+
+    updateBrand(idx, { loading: false, assets: data.assets })
+  }
+
+  function proceed() {
+    const ready = brands.filter(b => b.assets !== null)
+    if (ready.length === 0) return
+    sessionStorage.setItem('pdc:brands-assets', JSON.stringify(ready.map(b => ({
+      url: b.url,
+      assets: b.assets,
+    }))))
+    router.push('/step2')
+  }
+
+  const allDone = brands.every(b => b.assets !== null)
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div>
+      <h1 className="text-2xl font-black italic uppercase tracking-tight mb-1">
+        Step 1 — Brand Analysis
+      </h1>
+      <p className="text-xs text-zinc-500 font-mono mb-8">
+        Paste each brand URL. Claude Vision extracts the logo, hero image, and product photos.
+      </p>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      <div className="flex flex-col gap-6">
+        {brands.map((entry, idx) => (
+          <div key={idx} className="border border-zinc-800 p-5">
+            <div className="text-xs font-bold tracking-[2px] uppercase text-zinc-600 mb-3">
+              Brand {idx + 1}
+            </div>
+            <div className="flex gap-2 mb-3">
+              <input
+                className="flex-1 bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+                placeholder="https://brand-website.com"
+                value={entry.url}
+                onChange={e => updateBrand(idx, { url: e.target.value })}
+                onKeyDown={e => e.key === 'Enter' && analyseUrl(idx)}
+              />
+              <button
+                className="bg-[#f8d418] text-black text-xs font-bold tracking-[2px] uppercase px-4 py-2 disabled:opacity-40"
+                onClick={() => analyseUrl(idx)}
+                disabled={entry.loading || !entry.url}
+              >
+                {entry.loading ? 'Scanning…' : 'Analyse'}
+              </button>
+            </div>
+
+            {entry.error && (
+              <p className="text-red-400 text-xs font-mono mb-2">{entry.error}</p>
+            )}
+
+            {entry.showFallback && (
+              <div className="border border-zinc-700 p-3 bg-zinc-900">
+                <p className="text-xs text-zinc-400 font-mono mb-2">
+                  URL could not be scraped. Upload a screenshot instead:
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="text-xs text-zinc-400 font-mono"
+                    onChange={e => updateBrand(idx, { fallbackFile: e.target.files?.[0] || null })}
+                  />
+                  <button
+                    className="bg-zinc-700 text-white text-xs font-bold tracking-[2px] uppercase px-3 py-1 disabled:opacity-40"
+                    onClick={() => analyseFallback(idx)}
+                    disabled={!entry.fallbackFile || entry.loading}
+                  >
+                    Analyse
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {entry.assets && (
+              <div className="mt-3 border-t border-zinc-800 pt-3">
+                <p className="text-xs font-bold text-[#f8d418] tracking-[2px] uppercase mb-2">
+                  Extracted
+                </p>
+                <div className="flex gap-3 flex-wrap">
+                  {entry.assets.logoUrl && (
+                    <img src={entry.assets.logoUrl} alt="Logo" className="h-8 object-contain bg-zinc-800 p-1" />
+                  )}
+                  {entry.assets.heroImageUrl && (
+                    <img src={entry.assets.heroImageUrl} alt="Hero" className="h-16 w-24 object-cover" />
+                  )}
+                  {entry.assets.productImageUrls.slice(0, 3).map((u, i) => (
+                    <img key={i} src={u} alt={`Product ${i + 1}`} className="h-16 w-16 object-contain bg-zinc-800" />
+                  ))}
+                </div>
+                <p className="text-xs text-zinc-500 font-mono mt-2 leading-relaxed">
+                  {entry.assets.description}
+                </p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-3 mt-6">
+        <button
+          className="border border-zinc-700 text-zinc-500 text-xs font-bold tracking-[2px] uppercase px-4 py-2 hover:border-zinc-500"
+          onClick={() => setBrands(prev => [...prev, {
+            url: '', assets: null, loading: false, error: null, showFallback: false, fallbackFile: null,
+          }])}
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          + Add brand
+        </button>
+        <button
+          className="bg-[#f8d418] text-black text-xs font-bold tracking-[2px] uppercase px-6 py-2 disabled:opacity-40 ml-auto"
+          onClick={proceed}
+          disabled={!allDone}
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Continue →
+        </button>
+      </div>
     </div>
-  );
+  )
 }
