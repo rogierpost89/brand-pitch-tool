@@ -14,10 +14,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="flex items-center gap-4 mb-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://pineappledrinks.com/wp-content/uploads/2025/02/Frame-76.png"
+              src="/pdc-logo.png"
               alt="Pineapple Drinks Club"
               className="h-8 w-auto object-contain"
-              style={{ filter: 'invert(1)' }}
             />
             <span className="text-xs tracking-[2px] uppercase text-zinc-700">
               Pitch Generator
