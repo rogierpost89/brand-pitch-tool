@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <img
               src="/pdc-logo.png"
               alt="Pineapple Drinks Club"
-              className="h-8 w-auto object-contain"
+              className="h-24 w-auto object-contain"
             />
             <span className="text-xs tracking-[2px] uppercase text-zinc-700">
               Pitch Generator
