@@ -1,47 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { screenshotUrl } from '@/lib/screenshot'
-import { extractBrandAssets } from '@/lib/vision'
+import { scrapeBrandPage } from '@/lib/scrape'
+import { extractAssetsFromPage, extractAssetsFromImage } from '@/lib/vision'
 
-export const maxDuration = 60 // Vercel Fluid Compute
+export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
   try {
-    let url: string
-    let uploadedScreenshot: Buffer | null = null
-
     const contentType = req.headers.get('content-type') || ''
+
+    // Fallback path: user uploaded a screenshot
     if (contentType.includes('multipart/form-data')) {
       const form = await req.formData()
-      url = (form.get('url') as string) || ''
+      const url = (form.get('url') as string) || 'https://unknown.com'
       const file = form.get('screenshot') as File | null
-      if (file) {
-        const bytes = await file.arrayBuffer()
-        uploadedScreenshot = Buffer.from(bytes)
-      }
-    } else {
-      const body = await req.json() as { url: string }
-      url = body.url
+      if (!file) return NextResponse.json({ error: 'No screenshot uploaded' }, { status: 400 })
+
+      const bytes = await file.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      const assets = await extractAssetsFromImage(buffer, url)
+      return NextResponse.json({ assets })
     }
 
+    // Primary path: scrape via Jina Reader
+    const { url } = await req.json() as { url: string }
     if (!url || !URL.canParse(url)) {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
     }
 
-    let screenshot: Buffer
-    if (uploadedScreenshot) {
-      screenshot = uploadedScreenshot
-    } else {
-      try {
-        screenshot = await screenshotUrl(url)
-      } catch {
-        return NextResponse.json(
-          { error: 'Could not reach URL', fallback: true },
-          { status: 422 }
-        )
-      }
+    let page
+    try {
+      page = await scrapeBrandPage(url)
+    } catch {
+      return NextResponse.json({ error: 'Could not fetch page', fallback: true }, { status: 422 })
     }
 
-    const assets = await extractBrandAssets(screenshot, url)
+    const assets = await extractAssetsFromPage(page, url)
     return NextResponse.json({ assets })
   } catch (err) {
     return NextResponse.json(
