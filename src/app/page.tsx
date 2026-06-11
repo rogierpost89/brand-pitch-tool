@@ -10,8 +10,7 @@ interface BrandEntry {
   brandContent: ExtractedBrand | null
   loading: boolean
   error: string | null
-  showFallback: boolean
-  fallbackFile: File | null
+  uploadFile: File | null        // renamed from fallbackFile; now always-visible
   contentOpen: boolean
 }
 
@@ -35,7 +34,7 @@ function emptyBrandContent(): ExtractedBrand {
 export default function Step1() {
   const router = useRouter()
   const [brands, setBrands] = useState<BrandEntry[]>([
-    { url: '', assets: null, brandContent: null, loading: false, error: null, showFallback: false, fallbackFile: null, contentOpen: true },
+    { url: '', assets: null, brandContent: null, loading: false, error: null, uploadFile: null, contentOpen: true },
   ])
 
   // Restore state when navigating back from Step 2
@@ -51,9 +50,8 @@ export default function Step1() {
           brandContent: b.brandContent,
           loading: false,
           error: null,
-          showFallback: false,
-          fallbackFile: null,
-          contentOpen: false, // collapsed by default when restoring
+          uploadFile: null,
+          contentOpen: false,
         })))
       }
     } catch { /* ignore */ }
@@ -142,7 +140,7 @@ export default function Step1() {
   async function analyseUrl(idx: number) {
     const entry = brands[idx]
     if (!entry.url) return
-    updateBrand(idx, { loading: true, error: null, assets: null, brandContent: null, showFallback: false })
+    updateBrand(idx, { loading: true, error: null, assets: null, brandContent: null })
 
     const res = await fetch('/api/analyse-brand', {
       method: 'POST',
@@ -153,11 +151,48 @@ export default function Step1() {
     const data = await res.json()
 
     if (!res.ok) {
-      if (data.fallback) {
-        updateBrand(idx, { loading: false, showFallback: true })
-      } else {
-        updateBrand(idx, { loading: false, error: data.error })
-      }
+      updateBrand(idx, { loading: false, error: data.error })
+      return
+    }
+
+    updateBrand(idx, {
+      loading: false,
+      assets: data.assets,
+      brandContent: data.brandContent ?? emptyBrandContent(),
+      contentOpen: true,
+    })
+  }
+
+  async function analyseFile(idx: number) {
+    const entry = brands[idx]
+    if (!entry.uploadFile) return
+
+    const file = entry.uploadFile
+    const mime = file.type
+
+    if (mime === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+        file.name.toLowerCase().endsWith('.pptx')) {
+      updateBrand(idx, { error: 'PPTX not supported — export as PDF from PowerPoint first.' })
+      return
+    }
+
+    updateBrand(idx, { loading: true, error: null, assets: null, brandContent: null })
+
+    const formData = new FormData()
+    formData.append('url', entry.url || 'https://unknown.com')
+
+    if (mime.startsWith('image/')) {
+      const compressed = await compressImage(file)
+      formData.append('file', compressed, 'upload.jpg')
+    } else {
+      formData.append('file', file, file.name)
+    }
+
+    const res = await fetch('/api/analyse-brand', { method: 'POST', body: formData })
+    const data = await res.json()
+
+    if (!res.ok) {
+      updateBrand(idx, { loading: false, error: data.error })
       return
     }
 
@@ -182,33 +217,6 @@ export default function Step1() {
         canvas.toBlob(blob => { URL.revokeObjectURL(objectUrl); resolve(blob!) }, 'image/jpeg', 0.80)
       }
       img.src = objectUrl
-    })
-  }
-
-  async function analyseFallback(idx: number) {
-    const entry = brands[idx]
-    if (!entry.fallbackFile) return
-    updateBrand(idx, { loading: true, error: null })
-
-    const compressed = await compressImage(entry.fallbackFile)
-    const formData = new FormData()
-    formData.append('screenshot', compressed, 'screenshot.jpg')
-    formData.append('url', entry.url || 'https://unknown.com')
-
-    const res = await fetch('/api/analyse-brand', { method: 'POST', body: formData })
-    const data = await res.json()
-
-    if (!res.ok) {
-      updateBrand(idx, { loading: false, error: data.error })
-      return
-    }
-
-    // Screenshot path returns no brandContent — show empty editable fields
-    updateBrand(idx, {
-      loading: false,
-      assets: data.assets,
-      brandContent: emptyBrandContent(),
-      contentOpen: true,
     })
   }
 
@@ -253,7 +261,7 @@ export default function Step1() {
                 onClick={() => analyseUrl(idx)}
                 disabled={entry.loading || !entry.url}
               >
-                {entry.loading && !entry.showFallback ? 'Scanning…' : 'Analyse'}
+                {entry.loading ? 'Scanning…' : 'Analyse'}
               </button>
             </div>
 
@@ -261,49 +269,70 @@ export default function Step1() {
               <p className="text-red-400 text-xs font-mono mb-2">{entry.error}</p>
             )}
 
-            {entry.showFallback && (
-              <div className="border border-zinc-700 p-3 bg-zinc-900">
-                <p className="text-xs text-zinc-400 font-mono mb-1">
-                  Could not scrape that URL — upload a screenshot instead:
-                </p>
-                <p className="text-xs text-zinc-600 font-mono mb-3">
-                  Open the site, press <kbd className="bg-zinc-800 px-1 rounded">Cmd+Shift+4</kbd>, capture the page, upload below.
-                </p>
-                <div className="flex gap-2 items-center">
-                  {!entry.fallbackFile ? (
-                    <label className="cursor-pointer border border-zinc-600 text-zinc-400 text-xs font-mono px-3 py-1.5 hover:border-[#f8d418] hover:text-white transition-colors">
-                      Choose screenshot
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={e => updateBrand(idx, { fallbackFile: e.target.files?.[0] || null })}
-                      />
-                    </label>
-                  ) : (
-                    <>
-                      <span className="text-xs text-zinc-400 font-mono truncate max-w-[200px]">
-                        {entry.fallbackFile.name}
-                      </span>
-                      <button
-                        className="text-zinc-600 hover:text-red-400 text-xs font-mono px-1"
-                        title="Remove"
-                        onClick={() => updateBrand(idx, { fallbackFile: null })}
-                      >
-                        ✕
-                      </button>
-                      <button
-                        className="bg-[#f8d418] text-black text-xs font-bold tracking-[2px] uppercase px-3 py-1.5 disabled:opacity-40 ml-2"
-                        onClick={() => analyseFallback(idx)}
-                        disabled={entry.loading}
-                      >
-                        {entry.loading ? 'Analysing…' : 'Analyse'}
-                      </button>
-                    </>
-                  )}
-                </div>
+            {/* Always-visible file drop zone */}
+            <div className="mt-3">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex-1 h-px bg-zinc-800" />
+                <span className="text-zinc-600 text-xs font-mono">or upload a file</span>
+                <div className="flex-1 h-px bg-zinc-800" />
               </div>
-            )}
+
+              {!entry.uploadFile ? (
+                <label
+                  className="block border border-dashed border-zinc-700 p-4 text-center cursor-pointer hover:border-zinc-500 transition-colors"
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => {
+                    e.preventDefault()
+                    const f = e.dataTransfer.files[0]
+                    if (f) updateBrand(idx, { uploadFile: f, error: null })
+                  }}
+                >
+                  <div className="text-zinc-500 text-xs font-mono mb-1">
+                    Drop screenshot, PDF, or brand presentation
+                  </div>
+                  <div className="text-zinc-600 text-xs font-mono">
+                    PNG · JPG · PDF — or{' '}
+                    <span className="text-[#f8d418] underline">browse</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0]
+                      if (f) updateBrand(idx, { uploadFile: f, error: null })
+                    }}
+                  />
+                </label>
+              ) : (
+                <div className="border border-dashed border-[#f8d418] px-4 py-3 flex items-center gap-3">
+                  <span className="text-sm">📄</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white text-xs font-mono truncate">{entry.uploadFile.name}</div>
+                    <div className="text-zinc-500 text-xs font-mono">
+                      {(entry.uploadFile.size / 1024 / 1024).toFixed(1)} MB · {entry.uploadFile.type || 'file'}
+                    </div>
+                  </div>
+                  <button
+                    className="text-zinc-600 hover:text-red-400 text-xs font-mono px-1"
+                    onClick={() => updateBrand(idx, { uploadFile: null })}
+                  >
+                    ✕
+                  </button>
+                  <button
+                    className="bg-[#f8d418] text-black text-xs font-bold tracking-[2px] uppercase px-3 py-1.5 disabled:opacity-40"
+                    onClick={() => analyseFile(idx)}
+                    disabled={entry.loading}
+                  >
+                    {entry.loading ? 'Analysing…' : 'Analyse'}
+                  </button>
+                </div>
+              )}
+
+              <p className="text-zinc-700 text-xs font-mono mt-1">
+                PPTX? Export as PDF from PowerPoint first.
+              </p>
+            </div>
 
             {entry.assets && (
               <div className="mt-3 border-t border-zinc-800 pt-3">
@@ -491,7 +520,7 @@ export default function Step1() {
         <button
           className="border border-zinc-700 text-zinc-500 text-xs font-bold tracking-[2px] uppercase px-4 py-2 hover:border-zinc-500"
           onClick={() => setBrands(prev => [...prev, {
-            url: '', assets: null, brandContent: null, loading: false, error: null, showFallback: false, fallbackFile: null, contentOpen: true,
+            url: '', assets: null, brandContent: null, loading: false, error: null, uploadFile: null, contentOpen: true,
           }])}
         >
           + Add brand
