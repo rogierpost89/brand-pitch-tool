@@ -2,31 +2,100 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { BrandAssets } from '@/lib/types'
+import type { BrandAssets, ExtractedBrand, ExtractedProduct } from '@/lib/types'
 
 interface BrandEntry {
   url: string
   assets: BrandAssets | null
+  brandContent: ExtractedBrand | null
   loading: boolean
   error: string | null
   showFallback: boolean
   fallbackFile: File | null
+  contentOpen: boolean
+}
+
+function emptyProduct(idx: number): ExtractedProduct {
+  return {
+    id: `product-${idx + 1}`,
+    name: '',
+    intro: '',
+    tagline: '',
+    usps: ['', '', ''],
+    why_it_sells: ['', '', ''],
+    annual_volume_btl: 0,
+    image_url: '',
+  }
+}
+
+function emptyBrandContent(): ExtractedBrand {
+  return { name: '', intro: '', products: [emptyProduct(0)] }
 }
 
 export default function Step1() {
   const router = useRouter()
   const [brands, setBrands] = useState<BrandEntry[]>([
-    { url: '', assets: null, loading: false, error: null, showFallback: false, fallbackFile: null },
+    { url: '', assets: null, brandContent: null, loading: false, error: null, showFallback: false, fallbackFile: null, contentOpen: true },
   ])
 
   function updateBrand(idx: number, patch: Partial<BrandEntry>) {
     setBrands(prev => prev.map((b, i) => i === idx ? { ...b, ...patch } : b))
   }
 
+  function updateBrandContent(idx: number, patch: Partial<ExtractedBrand>) {
+    setBrands(prev => prev.map((b, i) => {
+      if (i !== idx) return b
+      return { ...b, brandContent: { ...(b.brandContent ?? emptyBrandContent()), ...patch } }
+    }))
+  }
+
+  function updateProduct(brandIdx: number, productIdx: number, patch: Partial<ExtractedProduct>) {
+    setBrands(prev => prev.map((b, i) => {
+      if (i !== brandIdx) return b
+      const bc = b.brandContent ?? emptyBrandContent()
+      const products = bc.products.map((p, pi) => pi === productIdx ? { ...p, ...patch } : p)
+      return { ...b, brandContent: { ...bc, products } }
+    }))
+  }
+
+  function updateUsp(brandIdx: number, productIdx: number, uspIdx: number, value: string) {
+    setBrands(prev => prev.map((b, i) => {
+      if (i !== brandIdx) return b
+      const bc = b.brandContent ?? emptyBrandContent()
+      const products = bc.products.map((p, pi) => {
+        if (pi !== productIdx) return p
+        const usps = p.usps.map((u, ui) => ui === uspIdx ? value : u)
+        return { ...p, usps }
+      })
+      return { ...b, brandContent: { ...bc, products } }
+    }))
+  }
+
+  function updateWhySells(brandIdx: number, productIdx: number, wIdx: number, value: string) {
+    setBrands(prev => prev.map((b, i) => {
+      if (i !== brandIdx) return b
+      const bc = b.brandContent ?? emptyBrandContent()
+      const products = bc.products.map((p, pi) => {
+        if (pi !== productIdx) return p
+        const why_it_sells = p.why_it_sells.map((w, wi) => wi === wIdx ? value : w)
+        return { ...p, why_it_sells }
+      })
+      return { ...b, brandContent: { ...bc, products } }
+    }))
+  }
+
+  function addProduct(brandIdx: number) {
+    setBrands(prev => prev.map((b, i) => {
+      if (i !== brandIdx) return b
+      const bc = b.brandContent ?? emptyBrandContent()
+      return { ...b, brandContent: { ...bc, products: [...bc.products, emptyProduct(bc.products.length)] } }
+    }))
+  }
+
   async function analyseUrl(idx: number) {
     const entry = brands[idx]
     if (!entry.url) return
-    updateBrand(idx, { loading: true, error: null, assets: null, showFallback: false })
+    updateBrand(idx, { loading: true, error: null, assets: null, brandContent: null, showFallback: false })
 
     const res = await fetch('/api/analyse-brand', {
       method: 'POST',
@@ -45,7 +114,12 @@ export default function Step1() {
       return
     }
 
-    updateBrand(idx, { loading: false, assets: data.assets })
+    updateBrand(idx, {
+      loading: false,
+      assets: data.assets,
+      brandContent: data.brandContent ?? emptyBrandContent(),
+      contentOpen: true,
+    })
   }
 
   async function compressImage(file: File): Promise<Blob> {
@@ -82,7 +156,13 @@ export default function Step1() {
       return
     }
 
-    updateBrand(idx, { loading: false, assets: data.assets })
+    // Screenshot path returns no brandContent — show empty editable fields
+    updateBrand(idx, {
+      loading: false,
+      assets: data.assets,
+      brandContent: emptyBrandContent(),
+      contentOpen: true,
+    })
   }
 
   function proceed() {
@@ -91,6 +171,7 @@ export default function Step1() {
     sessionStorage.setItem('pdc:brands-assets', JSON.stringify(ready.map(b => ({
       url: b.url,
       assets: b.assets,
+      brandContent: b.brandContent,
     }))))
     router.push('/step2')
   }
@@ -103,7 +184,7 @@ export default function Step1() {
         Step 1 — Brand Analysis
       </h1>
       <p className="text-xs text-zinc-500 font-mono mb-8">
-        Paste each brand URL. Claude Vision extracts the logo, hero image, and product photos.
+        Paste each brand URL. Claude Vision extracts the logo, hero image, product photos, and brand copy.
       </p>
 
       <div className="flex flex-col gap-6">
@@ -180,7 +261,7 @@ export default function Step1() {
             {entry.assets && (
               <div className="mt-3 border-t border-zinc-800 pt-3">
                 <p className="text-xs font-bold text-[#f8d418] tracking-[2px] uppercase mb-2">
-                  Extracted
+                  Extracted Visuals
                 </p>
                 <div className="flex gap-3 flex-wrap">
                   {entry.assets.logoUrl && (
@@ -198,6 +279,138 @@ export default function Step1() {
                 </p>
               </div>
             )}
+
+            {entry.brandContent !== null && (
+              <div className="mt-4 border-t border-zinc-800 pt-4">
+                <button
+                  className="flex items-center gap-2 text-xs font-bold text-[#f8d418] tracking-[2px] uppercase mb-4 hover:opacity-80"
+                  onClick={() => updateBrand(idx, { contentOpen: !entry.contentOpen })}
+                >
+                  <span>{entry.contentOpen ? '▼' : '▶'}</span>
+                  Brand Content — Review &amp; Edit
+                </button>
+
+                {entry.contentOpen && (
+                  <div className="flex flex-col gap-5">
+                    {/* Brand-level fields */}
+                    <div className="border border-zinc-800 p-4 bg-zinc-950">
+                      <p className="text-xs font-bold tracking-[2px] uppercase text-zinc-500 mb-3">Brand</p>
+                      <div className="flex flex-col gap-3">
+                        <div>
+                          <label className="text-xs text-[#f8d418] font-mono block mb-1">Brand name</label>
+                          <input
+                            className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+                            value={entry.brandContent.name}
+                            onChange={e => updateBrandContent(idx, { name: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-[#f8d418] font-mono block mb-1">Brand intro</label>
+                          <textarea
+                            className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418] resize-none"
+                            rows={3}
+                            value={entry.brandContent.intro}
+                            onChange={e => updateBrandContent(idx, { intro: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Per-product fields */}
+                    {entry.brandContent.products.map((product, pi) => (
+                      <div key={pi} className="border border-zinc-800 p-4 bg-zinc-950">
+                        <p className="text-xs font-bold tracking-[2px] uppercase text-zinc-500 mb-3">
+                          Product {pi + 1}
+                        </p>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex gap-3">
+                            <div className="flex-1">
+                              <label className="text-xs text-[#f8d418] font-mono block mb-1">Product name</label>
+                              <input
+                                className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+                                value={product.name}
+                                onChange={e => updateProduct(idx, pi, { name: e.target.value })}
+                              />
+                            </div>
+                            <div className="w-40">
+                              <label className="text-xs text-[#f8d418] font-mono block mb-1">ID (slug)</label>
+                              <input
+                                className="w-full bg-zinc-900 border border-zinc-700 text-white text-xs font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+                                value={product.id}
+                                onChange={e => updateProduct(idx, pi, { id: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs text-[#f8d418] font-mono block mb-1">Tagline</label>
+                            <input
+                              className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+                              value={product.tagline}
+                              onChange={e => updateProduct(idx, pi, { tagline: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-[#f8d418] font-mono block mb-1">Intro</label>
+                            <textarea
+                              className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418] resize-none"
+                              rows={3}
+                              value={product.intro}
+                              onChange={e => updateProduct(idx, pi, { intro: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-[#f8d418] font-mono block mb-2">USPs</label>
+                            <div className="flex flex-col gap-2">
+                              {(product.usps.length >= 3 ? product.usps.slice(0, 3) : [...product.usps, ...Array(3 - product.usps.length).fill('')]).map((usp, ui) => (
+                                <textarea
+                                  key={ui}
+                                  className="w-full bg-zinc-900 border border-zinc-700 text-white text-xs font-mono px-3 py-2 outline-none focus:border-[#f8d418] resize-none"
+                                  rows={2}
+                                  placeholder={`USP ${ui + 1}`}
+                                  value={usp}
+                                  onChange={e => updateUsp(idx, pi, ui, e.target.value)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs text-[#f8d418] font-mono block mb-2">Why it sells</label>
+                            <div className="flex flex-col gap-2">
+                              {(product.why_it_sells.length >= 3 ? product.why_it_sells.slice(0, 3) : [...product.why_it_sells, ...Array(3 - product.why_it_sells.length).fill('')]).map((w, wi) => (
+                                <textarea
+                                  key={wi}
+                                  className="w-full bg-zinc-900 border border-zinc-700 text-white text-xs font-mono px-3 py-2 outline-none focus:border-[#f8d418] resize-none"
+                                  rows={2}
+                                  placeholder={`Reason ${wi + 1}`}
+                                  value={w}
+                                  onChange={e => updateWhySells(idx, pi, wi, e.target.value)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="w-40">
+                            <label className="text-xs text-[#f8d418] font-mono block mb-1">Annual vol. (btl)</label>
+                            <input
+                              type="number"
+                              className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+                              value={product.annual_volume_btl}
+                              onChange={e => updateProduct(idx, pi, { annual_volume_btl: Number(e.target.value) })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      className="border border-zinc-700 text-zinc-500 text-xs font-mono px-4 py-2 hover:border-zinc-500 self-start"
+                      onClick={() => addProduct(idx)}
+                    >
+                      + Add product
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -206,7 +419,7 @@ export default function Step1() {
         <button
           className="border border-zinc-700 text-zinc-500 text-xs font-bold tracking-[2px] uppercase px-4 py-2 hover:border-zinc-500"
           onClick={() => setBrands(prev => [...prev, {
-            url: '', assets: null, loading: false, error: null, showFallback: false, fallbackFile: null,
+            url: '', assets: null, brandContent: null, loading: false, error: null, showFallback: false, fallbackFile: null, contentOpen: true,
           }])}
         >
           + Add brand

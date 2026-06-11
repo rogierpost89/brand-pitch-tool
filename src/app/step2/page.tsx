@@ -2,96 +2,214 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { YamlInput, PriceRow } from '@/lib/types'
+import type { PriceRow, ExtractedBrand, BrandAssets } from '@/lib/types'
+
+interface BrandAssetEntry {
+  url: string
+  assets: BrandAssets | null
+  brandContent: ExtractedBrand | null
+}
 
 export default function Step2() {
   const router = useRouter()
-  const [yamlFile, setYamlFile] = useState<File | null>(null)
+  const [brandsAssets, setBrandsAssets] = useState<BrandAssetEntry[]>([])
+  const [company, setCompany] = useState('')
+  const [contact, setContact] = useState('')
+  const [excelUrl, setExcelUrl] = useState('')
   const [excelFile, setExcelFile] = useState<File | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [fetchingUrl, setFetchingUrl] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [unmatched, setUnmatched] = useState<string[]>([])
-  const [yamlData, setYamlData] = useState<YamlInput | null>(null)
   const [priceRows, setPriceRows] = useState<PriceRow[]>([])
   const [language, setLanguage] = useState<'en' | 'nl'>('en')
 
   useEffect(() => {
     const stored = sessionStorage.getItem('pdc:brands-assets')
-    if (!stored) router.push('/')
+    if (!stored) { router.push('/'); return }
+    setBrandsAssets(JSON.parse(stored) as BrandAssetEntry[])
   }, [router])
 
-  async function parseFiles() {
-    if (!yamlFile || !excelFile) return
-    setLoading(true)
+  async function fetchExcelFromUrl() {
+    if (!excelUrl) return
+    setFetchingUrl(true)
     setError(null)
 
-    const formData = new FormData()
-    formData.append('yaml', yamlFile)
-    formData.append('excel', excelFile)
+    const res = await fetch('/api/fetch-excel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: excelUrl }),
+    })
 
-    const res = await fetch('/api/parse-files', { method: 'POST', body: formData })
     const data = await res.json()
+    setFetchingUrl(false)
 
-    setLoading(false)
     if (!res.ok) {
       setError(data.error)
       return
     }
 
-    setYamlData(data.yamlData)
     setPriceRows(data.priceRows)
-    setUnmatched(data.unmatched)
+  }
+
+  async function uploadExcelFile() {
+    if (!excelFile) return
+    setUploadingFile(true)
+    setError(null)
+
+    const formData = new FormData()
+    formData.append('excel', excelFile)
+
+    const res = await fetch('/api/parse-excel', { method: 'POST', body: formData })
+    const data = await res.json()
+
+    setUploadingFile(false)
+
+    if (!res.ok) {
+      setError(data.error)
+      return
+    }
+
+    setPriceRows(data.priceRows)
   }
 
   function proceed() {
-    if (!yamlData) return
-    const brandsAssets = JSON.parse(sessionStorage.getItem('pdc:brands-assets') || '[]')
+    if (priceRows.length === 0) return
     sessionStorage.setItem('pdc:step2', JSON.stringify({
       brandsAssets,
-      yamlData,
       priceRows,
       language,
+      buyer: { company, contact },
     }))
     router.push('/step3')
   }
 
-  const ready = yamlData !== null && unmatched.length === 0
+  // Compute matched products across all brand contents
+  const allProductIds = brandsAssets.flatMap(ba =>
+    (ba.brandContent?.products ?? []).map(p => p.id)
+  )
+  const priceProductIds = priceRows.map(r => r.productId)
+  const matchedIds = allProductIds.filter(id => priceProductIds.includes(id))
+
+  const ready = priceRows.length > 0
 
   return (
     <div>
       <h1 className="text-2xl font-black italic uppercase tracking-tight mb-1">
-        Step 2 — Content
+        Step 2 — Pricing &amp; Buyer
       </h1>
       <p className="text-xs text-zinc-500 font-mono mb-8">
-        Upload your brand.yaml and value-chain.xlsx.
+        Enter buyer details and load the value-chain Excel.
       </p>
 
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="border border-zinc-800 p-5">
-          <div className="text-xs font-bold tracking-[2px] uppercase text-zinc-600 mb-3">
-            brand.yaml
+      {/* Buyer info */}
+      <div className="border border-zinc-800 p-5 mb-4">
+        <div className="text-xs font-bold tracking-[2px] uppercase text-zinc-600 mb-4">Buyer</div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label className="text-xs text-[#f8d418] font-mono block mb-1">Company name</label>
+            <input
+              className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+              placeholder="Retailer B.V."
+              value={company}
+              onChange={e => setCompany(e.target.value)}
+            />
           </div>
-          <input
-            type="file"
-            accept=".yaml,.yml"
-            className="text-xs text-zinc-400 font-mono"
-            onChange={e => setYamlFile(e.target.files?.[0] || null)}
-          />
-        </div>
-
-        <div className="border border-zinc-800 p-5">
-          <div className="text-xs font-bold tracking-[2px] uppercase text-zinc-600 mb-3">
-            value-chain.xlsx
+          <div>
+            <label className="text-xs text-[#f8d418] font-mono block mb-1">Contact name</label>
+            <input
+              className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+              placeholder="Jane Smith"
+              value={contact}
+              onChange={e => setContact(e.target.value)}
+            />
           </div>
-          <input
-            type="file"
-            accept=".xlsx"
-            className="text-xs text-zinc-400 font-mono"
-            onChange={e => setExcelFile(e.target.files?.[0] || null)}
-          />
         </div>
       </div>
 
+      {/* Value chain Excel */}
+      <div className="border border-zinc-800 p-5 mb-4">
+        <div className="text-xs font-bold tracking-[2px] uppercase text-zinc-600 mb-4">Value Chain Excel</div>
+
+        {/* URL fetch */}
+        <div className="mb-4">
+          <label className="text-xs text-[#f8d418] font-mono block mb-1">
+            Paste your OneDrive or SharePoint share link
+          </label>
+          <div className="flex gap-2">
+            <input
+              className="flex-1 bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
+              placeholder="https://onedrive.live.com/..."
+              value={excelUrl}
+              onChange={e => setExcelUrl(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && fetchExcelFromUrl()}
+            />
+            <button
+              className="bg-zinc-700 text-white text-xs font-bold tracking-[2px] uppercase px-4 py-2 disabled:opacity-40 hover:bg-zinc-600"
+              onClick={fetchExcelFromUrl}
+              disabled={fetchingUrl || !excelUrl}
+            >
+              {fetchingUrl ? 'Fetching…' : 'Fetch'}
+            </button>
+          </div>
+          <p className="text-xs text-zinc-600 font-mono mt-1">
+            In SharePoint: right-click the file → Copy link. Or use the direct download URL.
+          </p>
+        </div>
+
+        {/* File upload fallback */}
+        <div className="border-t border-zinc-800 pt-4">
+          <p className="text-xs text-zinc-600 font-mono mb-2">or upload file directly</p>
+          <div className="flex gap-2 items-center">
+            <label className="cursor-pointer border border-zinc-600 text-zinc-400 text-xs font-mono px-3 py-1.5 hover:border-[#f8d418] hover:text-white transition-colors">
+              {excelFile ? excelFile.name : 'Choose .xlsx file'}
+              <input
+                type="file"
+                accept=".xlsx"
+                className="hidden"
+                onChange={e => setExcelFile(e.target.files?.[0] || null)}
+              />
+            </label>
+            {excelFile && (
+              <button
+                className="bg-zinc-700 text-white text-xs font-bold tracking-[2px] uppercase px-4 py-1.5 disabled:opacity-40 hover:bg-zinc-600"
+                onClick={uploadExcelFile}
+                disabled={uploadingFile}
+              >
+                {uploadingFile ? 'Uploading…' : 'Upload'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {error && <p className="text-red-400 text-xs font-mono mb-4">{error}</p>}
+
+      {priceRows.length > 0 && (
+        <div className="border border-zinc-800 p-4 mb-6">
+          <p className="text-xs font-bold text-[#f8d418] tracking-[2px] uppercase mb-2">Excel loaded</p>
+          <p className="text-xs text-zinc-400 font-mono mb-2">
+            Found {priceRows.length} price row(s)
+          </p>
+          {allProductIds.length > 0 && (
+            <p className="text-xs text-zinc-500 font-mono mb-2">
+              Matched {matchedIds.length} / {allProductIds.length} product(s): {matchedIds.join(', ') || 'none'}
+            </p>
+          )}
+          <div className="flex flex-col gap-0.5 max-h-32 overflow-y-auto">
+            {priceRows.map((row, i) => (
+              <div key={i} className="flex gap-3 text-xs font-mono text-zinc-600">
+                <span className="text-zinc-400 w-28 truncate">{row.productId}</span>
+                <span className="text-zinc-600 w-24 truncate">{row.brandName}</span>
+                <span>{row.deliveryPrice}</span>
+                <span className="text-zinc-700">RSP {row.rsp}</span>
+                <span className="text-zinc-700">{row.margin}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Language */}
       <div className="flex gap-3 items-center mb-6">
         <span className="text-xs font-bold tracking-[2px] uppercase text-zinc-600">Language:</span>
         {(['en', 'nl'] as const).map(l => (
@@ -108,40 +226,6 @@ export default function Step2() {
           </button>
         ))}
       </div>
-
-      <button
-        className="bg-zinc-800 text-white text-xs font-bold tracking-[2px] uppercase px-5 py-2 mb-6 disabled:opacity-40"
-        onClick={parseFiles}
-        disabled={!yamlFile || !excelFile || loading}
-      >
-        {loading ? 'Parsing…' : 'Parse files'}
-      </button>
-
-      {error && <p className="text-red-400 text-xs font-mono mb-4">{error}</p>}
-
-      {unmatched.length > 0 && (
-        <div className="border border-yellow-800 bg-yellow-950 p-4 mb-4">
-          <p className="text-xs font-bold text-[#f8d418] mb-1">Unmatched products</p>
-          <p className="text-xs text-zinc-400 font-mono">
-            These product IDs are in brand.yaml but not in the Excel: {unmatched.join(', ')}
-          </p>
-        </div>
-      )}
-
-      {yamlData && (
-        <div className="border border-zinc-800 p-4 mb-6">
-          <p className="text-xs font-bold text-[#f8d418] tracking-[2px] uppercase mb-2">Parsed</p>
-          <p className="text-xs text-zinc-400 font-mono">
-            {yamlData.brands.length} brand(s) · {yamlData.brands.reduce((s, b) => s + b.products.length, 0)} product(s)
-          </p>
-          <p className="text-xs text-zinc-500 font-mono">
-            Buyer: {yamlData.buyer.company} · {yamlData.buyer.contact}
-          </p>
-          <p className="text-xs text-zinc-500 font-mono">
-            {priceRows.length} price rows from Excel
-          </p>
-        </div>
-      )}
 
       <div className="flex gap-3 mt-2">
         <button

@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
-import type { BrandAssets } from './types'
+import type { BrandAssets, ExtractedBrand } from './types'
 import type { ScrapedPage } from './scrape'
 
 const client = new Anthropic()
@@ -85,4 +85,71 @@ Return only the JSON object.`,
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('Claude Vision returned no JSON')
   return JSON.parse(match[0]) as BrandAssets
+}
+
+export async function extractBrandContent(
+  page: ScrapedPage,
+  brandUrl: string,
+  productImageUrls: string[]
+): Promise<ExtractedBrand> {
+  const response = await client.messages.create({
+    model: 'claude-opus-4-8',
+    max_tokens: 4096,
+    messages: [{
+      role: 'user',
+      content: `You are analysing the brand website: ${brandUrl}
+
+PAGE CONTENT:
+${page.content.slice(0, 10000)}
+
+Extract the brand and product information and return ONLY a JSON object (no markdown):
+{
+  "name": "brand name",
+  "intro": "2-3 sentence brand intro for a B2B pitch deck",
+  "products": [
+    {
+      "id": "slug-of-product-name",
+      "name": "Product Name",
+      "intro": "2-3 sentence product description",
+      "tagline": "short punchy tagline",
+      "usps": [
+        "USP 1 — key attribute · detail",
+        "USP 2 — key attribute · detail",
+        "USP 3 — key attribute · detail"
+      ],
+      "why_it_sells": [
+        "Reason 1 why a retailer should stock this",
+        "Reason 2",
+        "Reason 3"
+      ],
+      "annual_volume_btl": 0,
+      "image_url": ""
+    }
+  ]
+}
+
+Rules:
+- id must be a lowercase slug (e.g. "clarea", "aperitif-rosso")
+- usps should use " · " as separator for sub-points
+- why_it_sells should be retailer-facing reasons (margin, trend, consumer demand)
+- annual_volume_btl is 0 (user will fill this in)
+- image_url is "" (will be filled from scraped product images)
+- Include all products found on the page
+- Return only the JSON object`,
+    }],
+  })
+
+  const text = response.content[0].type === 'text' ? response.content[0].text : ''
+  const match = text.match(/\{[\s\S]*\}/)
+  if (!match) throw new Error('Claude returned no JSON for brand content')
+  const result = JSON.parse(match[0]) as ExtractedBrand
+
+  // Fill image_url from productImageUrls by index
+  result.products.forEach((p, i) => {
+    if (!p.image_url && productImageUrls[i]) {
+      p.image_url = productImageUrls[i]
+    }
+  })
+
+  return result
 }

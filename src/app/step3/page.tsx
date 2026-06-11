@@ -2,19 +2,26 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import type { YamlInput, PriceRow, TranslationMap } from '@/lib/types'
+import type { PriceRow, TranslationMap, ExtractedBrand, BrandAssets } from '@/lib/types'
 
-interface Step2State {
-  brandsAssets: Array<{ url: string; assets: { logoUrl: string; heroImageUrl: string; productImageUrls: string[]; description: string } }>
-  yamlData: YamlInput
-  priceRows: PriceRow[]
-  language: 'en' | 'nl'
+interface BrandAssetEntry {
+  url: string
+  assets: BrandAssets | null
+  brandContent: ExtractedBrand | null
 }
 
-function buildTranslatableFields(yamlData: YamlInput): TranslationMap {
+interface Step2State {
+  brandsAssets: BrandAssetEntry[]
+  priceRows: PriceRow[]
+  language: 'en' | 'nl'
+  buyer: { company: string; contact: string }
+}
+
+function buildTranslatableFields(brandsAssets: BrandAssetEntry[]): TranslationMap {
   const fields: TranslationMap = {}
-  yamlData.brands.forEach((brand, bi) => {
-    brand.products.forEach(p => {
+  brandsAssets.forEach((ba, bi) => {
+    const products = ba.brandContent?.products ?? []
+    products.forEach(p => {
       fields[`intro_${bi}_${p.id}`] = p.intro
       fields[`tagline_${bi}_${p.id}`] = p.tagline
       p.usps.forEach((u, i) => { fields[`usp_${i}_${bi}_${p.id}`] = u })
@@ -40,7 +47,7 @@ export default function Step3() {
     const s = JSON.parse(stored) as Step2State
     setState(s)
 
-    const fields = buildTranslatableFields(s.yamlData)
+    const fields = buildTranslatableFields(s.brandsAssets)
     setEnFields(fields)
 
     if (s.language === 'nl') {
@@ -76,20 +83,19 @@ export default function Step3() {
     const priceIndex: Record<string, PriceRow> = {}
     state.priceRows.forEach(r => { priceIndex[r.productId] = r })
 
-    const brands = state.yamlData.brands.map((brand, bi) => {
-      const brandAssets = state.brandsAssets[bi]?.assets ?? {
-        logoUrl: '', heroImageUrl: '', productImageUrls: [], description: brand.intro,
-      }
+    const brands = state.brandsAssets.map(ba => {
+      const bc = ba.brandContent
+      const products = (bc?.products ?? []).map(p => ({
+        ...p,
+        prices: priceIndex[p.id]
+          ? { deliveryPrice: priceIndex[p.id].deliveryPrice, rsp: priceIndex[p.id].rsp, margin: priceIndex[p.id].margin }
+          : { deliveryPrice: '–', rsp: '–', margin: '–' },
+      }))
       return {
-        name: brand.name,
-        intro: brand.intro,
-        assets: brandAssets,
-        products: brand.products.map(p => ({
-          ...p,
-          prices: priceIndex[p.id]
-            ? { deliveryPrice: priceIndex[p.id].deliveryPrice, rsp: priceIndex[p.id].rsp, margin: priceIndex[p.id].margin }
-            : { deliveryPrice: '–', rsp: '–', margin: '–' },
-        })),
+        name: bc?.name ?? ba.url,
+        intro: bc?.intro ?? '',
+        assets: ba.assets ?? { logoUrl: '', heroImageUrl: '', productImageUrls: [], description: '' },
+        products,
       }
     })
 
@@ -97,7 +103,11 @@ export default function Step3() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        deckData: { buyer: state.yamlData.buyer, language: state.language, brands },
+        deckData: {
+          buyer: state.buyer,
+          language: state.language,
+          brands,
+        },
         translationOverrides: overrides,
       }),
     })

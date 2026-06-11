@@ -73,6 +73,23 @@ export interface DeckData {
   language: 'en' | 'nl'
 }
 
+export interface ExtractedProduct {
+  id: string           // slug of product name, e.g. "clarea"
+  name: string
+  intro: string
+  tagline: string
+  usps: string[]       // 3 bullets
+  why_it_sells: string[] // 3 bullets
+  annual_volume_btl: number
+  image_url: string    // filled from productImageUrls[index] if available
+}
+
+export interface ExtractedBrand {
+  name: string
+  intro: string
+  products: ExtractedProduct[]
+}
+
 export type TranslationMap = Record<string, string>
 
 // Per-product text fields that can be translated

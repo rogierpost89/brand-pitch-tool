@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { scrapeBrandPage } from '@/lib/scrape'
-import { extractAssetsFromPage, extractAssetsFromImage } from '@/lib/vision'
+import { extractAssetsFromPage, extractAssetsFromImage, extractBrandContent } from '@/lib/vision'
 
 export const maxDuration = 60
 
@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
       const assets = await extractAssetsFromImage(buffer, url)
+      // No brandContent for screenshot path — user fills manually
       return NextResponse.json({ assets })
     }
 
@@ -34,8 +35,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Could not fetch page', fallback: true }, { status: 422 })
     }
 
-    const assets = await extractAssetsFromPage(page, url)
-    return NextResponse.json({ assets })
+    const [assets, brandContent] = await Promise.all([
+      extractAssetsFromPage(page, url),
+      extractBrandContent(page, url, []),
+    ])
+
+    // Fill image_url from assets.productImageUrls
+    brandContent.products.forEach((p, i) => {
+      if (!p.image_url && assets.productImageUrls[i]) {
+        p.image_url = assets.productImageUrls[i]
+      }
+    })
+
+    return NextResponse.json({ assets, brandContent })
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Unknown error' },
