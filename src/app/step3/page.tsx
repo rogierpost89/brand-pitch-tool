@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import type { PriceRow, TranslationMap, ExtractedBrand, BrandAssets } from '@/lib/types'
+import { findPriceRow } from '@/lib/price-match'
 
 interface BrandAssetEntry {
   url: string
@@ -87,13 +88,10 @@ export default function Step3() {
         )
       : {}
 
-    const priceIndex: Record<string, PriceRow> = {}
-    state.priceRows.forEach(r => { priceIndex[r.productId.toLowerCase()] = r })
-
     const brands = state.brandsAssets.map(ba => {
       const bc = ba.brandContent
       const products = (bc?.products ?? []).map(p => {
-        const row = priceIndex[p.id.toLowerCase()]
+        const row = findPriceRow(p, state.priceRows)
         return {
           ...p,
           prices: row

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { PriceRow, ExtractedBrand, BrandAssets } from '@/lib/types'
+import { fuzzyProductMatch } from '@/lib/price-match'
 
 interface BrandAssetEntry {
   url: string
@@ -59,12 +60,14 @@ export default function Step2() {
     router.push('/step3')
   }
 
-  // Compute matched products across all brand contents
-  const allProductIds = brandsAssets.flatMap(ba =>
-    (ba.brandContent?.products ?? []).map(p => p.id)
+  // Compute matched products across all brand contents using fuzzy matching
+  const allProducts = brandsAssets.flatMap(ba =>
+    (ba.brandContent?.products ?? []).map(p => ({ id: p.id, name: p.name }))
   )
-  const priceProductIds = priceRows.map(r => r.productId)
-  const matchedIds = allProductIds.filter(id => priceProductIds.includes(id))
+  const matchResults = allProducts.map(p => {
+    const matched = priceRows.find(r => fuzzyProductMatch(p.id, p.name, r.productId))
+    return { product: p, matchedRow: matched ?? null }
+  })
 
   const ready = priceRows.length > 0
 
@@ -144,27 +147,45 @@ export default function Step2() {
       {priceRows.length > 0 && (
         <div className="border border-zinc-800 p-4 mb-6">
           <p className="text-xs font-bold text-[#f8d418] tracking-[2px] uppercase mb-2">Excel loaded</p>
-          <p className="text-xs text-zinc-400 font-mono mb-2">
+          <p className="text-xs text-zinc-400 font-mono mb-3">
             Found {priceRows.length} price row(s)
           </p>
-          {allProductIds.length > 0 && (
-            <p className="text-xs text-zinc-500 font-mono mb-2">
-              Matched {matchedIds.length} / {allProductIds.length} product(s): {matchedIds.join(', ') || 'none'}
-            </p>
+          {allProducts.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs font-bold tracking-[1.5px] uppercase text-zinc-600 mb-1">Product matching</p>
+              {matchResults.map(({ product, matchedRow }) => (
+                <div key={product.id} className="flex gap-2 items-baseline text-xs font-mono mb-0.5">
+                  <span className="text-zinc-400">{product.name}</span>
+                  <span className="text-zinc-700">→</span>
+                  {matchedRow
+                    ? <>
+                        <span className="text-emerald-400">{matchedRow.productId}</span>
+                        <span className="text-zinc-600">excl {matchedRow.deliveryPriceExcl}</span>
+                        <span className="text-zinc-600">incl {matchedRow.deliveryPriceIncl}</span>
+                        <span className="text-zinc-500">RSP {matchedRow.rsp}</span>
+                      </>
+                    : <span className="text-red-500">no match</span>
+                  }
+                </div>
+              ))}
+            </div>
           )}
-          <div className="flex flex-col gap-0.5 max-h-32 overflow-y-auto">
-            {priceRows.map((row, i) => (
-              <div key={i} className="flex gap-3 text-xs font-mono text-zinc-600">
-                <span className="text-zinc-400 w-28 truncate">{row.productId}</span>
-                <span className="text-zinc-600 w-20 truncate">{row.brandName}</span>
-                <span className="text-zinc-500">excl {row.deliveryPriceExcl}</span>
-                <span className="text-zinc-500">incl {row.deliveryPriceIncl}</span>
-                <span className="text-zinc-700">RSP {row.rsp}</span>
-                <span className="text-zinc-700">m.excl {row.marginExcl}</span>
-                <span className="text-zinc-700">m.incl {row.marginIncl}</span>
-              </div>
-            ))}
-          </div>
+          <details className="text-xs font-mono text-zinc-700">
+            <summary className="cursor-pointer hover:text-zinc-500 mb-1">All Excel rows ({priceRows.length})</summary>
+            <div className="flex flex-col gap-0.5 max-h-32 overflow-y-auto mt-1">
+              {priceRows.map((row, i) => (
+                <div key={i} className="flex gap-3">
+                  <span className="text-zinc-500 w-28 truncate">{row.productId}</span>
+                  <span className="text-zinc-700 w-20 truncate">{row.brandName}</span>
+                  <span>excl {row.deliveryPriceExcl}</span>
+                  <span>incl {row.deliveryPriceIncl}</span>
+                  <span>RSP {row.rsp}</span>
+                  <span>m.excl {row.marginExcl}</span>
+                  <span>m.incl {row.marginIncl}</span>
+                </div>
+              ))}
+            </div>
+          </details>
         </div>
       )}
 
