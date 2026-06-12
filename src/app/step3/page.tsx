@@ -88,12 +88,12 @@ export default function Step3() {
       : {}
 
     const priceIndex: Record<string, PriceRow> = {}
-    state.priceRows.forEach(r => { priceIndex[r.productId] = r })
+    state.priceRows.forEach(r => { priceIndex[r.productId.toLowerCase()] = r })
 
     const brands = state.brandsAssets.map(ba => {
       const bc = ba.brandContent
       const products = (bc?.products ?? []).map(p => {
-        const row = priceIndex[p.id]
+        const row = priceIndex[p.id.toLowerCase()]
         return {
           ...p,
           prices: row

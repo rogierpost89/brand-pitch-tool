@@ -159,7 +159,7 @@ export function pricingSlide(opts: {
         </div>
       </div>
       <div class="pcard">
-        <div class="pl" data-en="Your Retail Margin" data-nl="Uw detailhandelmarge">Your Retail Margin</div>
+        <div class="pl" data-en="Your Retail Margin" data-nl="Retailmarge">Your Retail Margin</div>
         <div class="pv margin-val" data-excl="${escHtml(product.prices.marginExcl)}" data-incl="${escHtml(product.prices.marginIncl)}">${escHtml(product.prices.marginExcl)}</div>
         <div class="ps margin-method"
           data-excl-en="Calculated on excl. excise" data-excl-nl="Op basis van excl. accijns"

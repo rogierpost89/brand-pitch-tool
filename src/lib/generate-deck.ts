@@ -30,7 +30,7 @@ body { background: #111; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans
 .s-title .left::after { content: ''; position: absolute; top: 16%; bottom: 14%; right: 0; width: 4px; background: #f8d418; }
 .s-title .eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #f8d418; margin-bottom: 10px; }
 .s-title h1 { font-size: 34px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 0.95; letter-spacing: -1px; margin-bottom: 12px; }
-.s-title .subtitle { font-size: 11px; color: #555; font-family: 'Courier New', monospace; line-height: 1.7; max-width: 210px; }
+.s-title .subtitle { font-size: 11px; color: #555; font-family: 'Courier New', monospace; line-height: 1.7; max-width: 210px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
 .s-title .logo-row { display: flex; align-items: flex-end; justify-content: space-between; }
 .s-title .logo-label { font-size: 7px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #444; margin-bottom: 4px; }
 .s-title .pdc-logo { height: 26px; width: auto; object-fit: contain; object-position: left; }

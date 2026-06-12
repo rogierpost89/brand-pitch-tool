@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     // Embed all brand images
     const embeddedBrands: DeckBrand[] = await Promise.all(
-      deckData.brands.map(async brand => {
+      deckData.brands.map(async (brand, bi) => {
         const [logoDataUri, heroDataUri, ...productDataUris] = await Promise.all([
           imageToDataUri(brand.assets.logoUrl).catch(() => ''),
           imageToDataUri(brand.assets.heroImageUrl).catch(() => ''),
@@ -45,13 +45,13 @@ export async function POST(req: NextRequest) {
           return {
             ...p,
             imageDataUri,
-            tagline: applyOverride(`tagline_${p.id}`, p.tagline),
-            intro: applyOverride(`intro_${p.id}`, p.intro),
+            tagline: applyOverride(`tagline_${bi}_${p.id}`, p.tagline),
+            intro: applyOverride(`intro_${bi}_${p.id}`, p.intro),
             usps: p.usps.map((u, i) =>
-              applyOverride(`usp_${i}_${p.id}`, u)
+              applyOverride(`usp_${i}_${bi}_${p.id}`, u)
             ),
             why_it_sells: p.why_it_sells.map((w, i) =>
-              applyOverride(`why_${i}_${p.id}`, w)
+              applyOverride(`why_${i}_${bi}_${p.id}`, w)
             ),
           }
         })
