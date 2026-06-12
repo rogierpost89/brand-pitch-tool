@@ -18,6 +18,18 @@ interface Step2State {
   buyer: { company: string; contact: string }
 }
 
+interface EditableRow {
+  id: string
+  brandName: string
+  name: string
+  deliveryPriceExcl: string
+  deliveryPriceIncl: string
+  rsp: string
+  marginExcl: string
+  marginIncl: string
+  annual_volume_btl: string
+}
+
 function buildTranslatableFields(brandsAssets: BrandAssetEntry[]): TranslationMap {
   const fields: TranslationMap = {}
   brandsAssets.forEach((ba, bi) => {
@@ -32,9 +44,22 @@ function buildTranslatableFields(brandsAssets: BrandAssetEntry[]): TranslationMa
   return fields
 }
 
+function calcMarginPct(rsp: string, cost: string): string {
+  const r = parseFloat(rsp.replace(/[^0-9.]/g, ''))
+  const c = parseFloat(cost.replace(/[^0-9.]/g, ''))
+  if (!r || !c || r <= 0) return ''
+  return Math.round((1 - c / r) * 100) + '%'
+}
+
+const COL_HEADERS = ['Product', 'Brand', 'Price Excl.', 'Price Incl.', 'RSP', 'Margin Excl.', 'Margin Incl.', 'Volume (btl)']
+const EDITABLE_FIELDS: (keyof EditableRow)[] = [
+  'name', 'brandName', 'deliveryPriceExcl', 'deliveryPriceIncl', 'rsp', 'marginExcl', 'marginIncl', 'annual_volume_btl',
+]
+
 export default function Step3() {
   const router = useRouter()
   const [state, setState] = useState<Step2State | null>(null)
+  const [editableRows, setEditableRows] = useState<EditableRow[]>([])
   const [translating, setTranslating] = useState(false)
   const [enFields, setEnFields] = useState<TranslationMap>({})
   const [nlFields, setNlFields] = useState<TranslationMap>({})
@@ -47,6 +72,29 @@ export default function Step3() {
     if (!stored) { router.push('/'); return }
     const s = JSON.parse(stored) as Step2State
     setState(s)
+
+    // Build editable rows from matched price data
+    const rows: EditableRow[] = []
+    s.brandsAssets.forEach(ba => {
+      const bc = ba.brandContent
+      ;(bc?.products ?? []).forEach(p => {
+        const matched = findPriceRow(p, s.priceRows)
+        const mExcl = matched?.marginExcl || calcMarginPct(matched?.rsp || '', matched?.deliveryPriceExcl || '')
+        const mIncl = matched?.marginIncl || calcMarginPct(matched?.rsp || '', matched?.deliveryPriceIncl || '')
+        rows.push({
+          id: p.id,
+          brandName: bc?.name ?? '',
+          name: p.name,
+          deliveryPriceExcl: matched?.deliveryPriceExcl ?? '',
+          deliveryPriceIncl: matched?.deliveryPriceIncl ?? '',
+          rsp: matched?.rsp ?? '',
+          marginExcl: mExcl,
+          marginIncl: mIncl,
+          annual_volume_btl: String(p.annual_volume_btl ?? ''),
+        })
+      })
+    })
+    setEditableRows(rows)
 
     const fields = buildTranslatableFields(s.brandsAssets)
     setEnFields(fields)
@@ -67,15 +115,23 @@ export default function Step3() {
     }
   }, [router])
 
+  function updateRow(idx: number, field: keyof EditableRow, value: string) {
+    setEditableRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r))
+  }
+
+  function autoCalcRow(idx: number) {
+    setEditableRows(prev => prev.map((r, i) => {
+      if (i !== idx) return r
+      return {
+        ...r,
+        marginExcl: r.marginExcl || calcMarginPct(r.rsp, r.deliveryPriceExcl),
+        marginIncl: r.marginIncl || calcMarginPct(r.rsp, r.deliveryPriceIncl),
+      }
+    }))
+  }
+
   const effectiveNl = useCallback((key: string) =>
     userEdits[key] ?? nlFields[key] ?? enFields[key], [userEdits, nlFields, enFields])
-
-  function calcMarginPct(rsp: string, cost: string): string {
-    const r = parseFloat(rsp.replace(/[^0-9.]/g, ''))
-    const c = parseFloat(cost.replace(/[^0-9.]/g, ''))
-    if (!r || !c || r <= 0) return ''
-    return Math.round((1 - c / r) * 100) + '%'
-  }
 
   async function generate() {
     if (!state) return
@@ -83,24 +139,26 @@ export default function Step3() {
     setError(null)
 
     const overrides = state.language === 'nl'
-      ? Object.fromEntries(
-          Object.keys(enFields).map(k => [k, effectiveNl(k)])
-        )
+      ? Object.fromEntries(Object.keys(enFields).map(k => [k, effectiveNl(k)]))
       : {}
+
+    const editedMap: Record<string, EditableRow> = {}
+    editableRows.forEach(r => { editedMap[r.id] = r })
 
     const brands = state.brandsAssets.map(ba => {
       const bc = ba.brandContent
       const products = (bc?.products ?? []).map(p => {
-        const row = findPriceRow(p, state.priceRows)
+        const ed = editedMap[p.id]
         return {
           ...p,
-          prices: row
+          annual_volume_btl: ed ? (parseFloat(ed.annual_volume_btl) || 0) : (p.annual_volume_btl ?? 0),
+          prices: ed
             ? {
-                deliveryPriceExcl: row.deliveryPriceExcl,
-                deliveryPriceIncl: row.deliveryPriceIncl,
-                rsp: row.rsp,
-                marginExcl: row.marginExcl || calcMarginPct(row.rsp, row.deliveryPriceExcl),
-                marginIncl: row.marginIncl || calcMarginPct(row.rsp, row.deliveryPriceIncl),
+                deliveryPriceExcl: ed.deliveryPriceExcl || '–',
+                deliveryPriceIncl: ed.deliveryPriceIncl || '–',
+                rsp: ed.rsp || '–',
+                marginExcl: ed.marginExcl || calcMarginPct(ed.rsp, ed.deliveryPriceExcl) || '–',
+                marginIncl: ed.marginIncl || calcMarginPct(ed.rsp, ed.deliveryPriceIncl) || '–',
               }
             : { deliveryPriceExcl: '–', deliveryPriceIncl: '–', rsp: '–', marginExcl: '–', marginIncl: '–' },
         }
@@ -117,11 +175,7 @@ export default function Step3() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        deckData: {
-          buyer: state.buyer,
-          language: state.language,
-          brands,
-        },
+        deckData: { buyer: state.buyer, language: state.language, brands },
         translationOverrides: overrides,
       }),
     })
@@ -149,13 +203,62 @@ export default function Step3() {
   return (
     <div>
       <h1 className="text-2xl font-black italic uppercase tracking-tight mb-1">
-        Step 3 — {showTranslation ? 'Review Translation' : 'Generate'}
+        Step 3 — Review &amp; Generate
       </h1>
       <p className="text-xs text-zinc-500 font-mono mb-8">
-        {showTranslation
-          ? 'Claude auto-translated the copy. Edit any field below, then generate.'
-          : 'All set. Click Generate to download your pitch deck.'}
+        Edit any product data below, then generate your deck.
       </p>
+
+      {/* Editable product/price grid */}
+      {editableRows.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold tracking-[2px] uppercase text-zinc-600">Product Overview</span>
+            <button
+              className="text-xs text-zinc-600 hover:text-[#f8d418] font-mono border border-zinc-800 px-3 py-1"
+              onClick={() => editableRows.forEach((_, i) => autoCalcRow(i))}
+              title="Auto-calculate empty margin fields from price and RSP"
+            >
+              ↻ Recalc margins
+            </button>
+          </div>
+          <div className="overflow-x-auto border border-zinc-800">
+            <table className="w-full text-xs font-mono border-collapse">
+              <thead>
+                <tr>
+                  {COL_HEADERS.map(h => (
+                    <th key={h} className="text-left text-zinc-600 font-bold tracking-[1.5px] uppercase px-2 py-2 border-b border-zinc-800 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {editableRows.map((row, i) => (
+                  <tr key={row.id} className="border-b border-zinc-900 last:border-0">
+                    {EDITABLE_FIELDS.map(field => (
+                      <td key={field} className="px-1 py-1">
+                        <input
+                          className="w-full bg-transparent text-zinc-300 outline-none px-1 py-1 focus:bg-zinc-900 focus:text-white rounded-sm"
+                          value={row[field]}
+                          onChange={e => updateRow(i, field, e.target.value)}
+                          onBlur={() => {
+                            if (field === 'rsp' || field === 'deliveryPriceExcl' || field === 'deliveryPriceIncl') {
+                              autoCalcRow(i)
+                            }
+                          }}
+                          style={{ minWidth: field === 'name' ? 120 : field === 'brandName' ? 80 : 72 }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-zinc-700 font-mono mt-1">Click any cell to edit. Margins auto-fill from RSP and price when left empty.</p>
+        </div>
+      )}
 
       {translating && (
         <p className="text-xs text-[#f8d418] font-mono mb-6">Translating with Claude…</p>
