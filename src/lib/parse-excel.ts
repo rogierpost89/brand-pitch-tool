@@ -33,7 +33,7 @@ function matchLabel(cell: string): keyof PriceRow | null {
  * Scans the first MAX_HEADER_SCAN rows to find the header (handles title rows above).
  */
 function tryTabularLayout(rows: (string | number)[][]): PriceRow[] | null {
-  const MAX_HEADER_SCAN = 6
+  const MAX_HEADER_SCAN = 50
 
   for (let headerIdx = 0; headerIdx < Math.min(MAX_HEADER_SCAN, rows.length - 1); headerIdx++) {
     const headerRow = rows[headerIdx]
@@ -75,7 +75,7 @@ function tryTransposedLayout(rows: (string | number)[][]): PriceRow[] | null {
   const labelRowIndex: Partial<Record<keyof PriceRow, number>> = {}
 
   rows.forEach((row, i) => {
-    for (let c = 0; c < 3; c++) {
+    for (let c = 0; c < 5; c++) {
       const cell = String(row[c] ?? '').trim()
       if (!cell) continue
       const key = matchLabel(cell)
@@ -131,8 +131,18 @@ export function parseExcel(buffer: Buffer): PriceRow[] {
     }
 
     if (!result) {
-      const labels = rows.slice(0, 20).map(r => String(r[0] ?? '').trim()).filter(Boolean)
-      errors.push(`Tab "${name}": [${labels.slice(0, 6).join(', ')}]`)
+      // Show col-A values from first 20 rows for context
+      const colAValues = rows.slice(0, 20).map(r => String(r[0] ?? '').trim()).filter(Boolean)
+      // Show which matcher keys were found and at which rows (tabular scan up to 50 rows, all cols)
+      const foundLabels: string[] = []
+      for (let ri = 0; ri < Math.min(50, rows.length); ri++) {
+        for (let ci = 0; ci < rows[ri].length; ci++) {
+          const key = matchLabel(String(rows[ri][ci] ?? ''))
+          if (key) foundLabels.push(`${key}@r${ri}c${ci}`)
+        }
+      }
+      const foundSummary = foundLabels.length > 0 ? `; found: [${foundLabels.slice(0, 10).join(', ')}]` : '; no matching labels found'
+      errors.push(`Tab "${name}": colA=[${colAValues.slice(0, 6).join(', ')}]${foundSummary}`)
     }
   }
 
