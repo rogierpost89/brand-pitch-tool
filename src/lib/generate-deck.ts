@@ -14,6 +14,8 @@ body { background: #111; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans
 .lang-controls { align-self: flex-start; display: flex; gap: 8px; margin-bottom: 28px; }
 .lang-btn { background: #1a1a1a; border: 1px solid #2a2a2a; color: #666; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 6px 14px; cursor: pointer; font-family: 'Gill Sans', sans-serif; }
 .lang-btn.active { background: #f8d418; border-color: #f8d418; color: #000; }
+.ctrl-sep { width: 1px; background: #2a2a2a; margin: 0 4px; }
+.ctrl-label { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #444; align-self: center; margin-right: 4px; }
 
 .slide { width: 640px; height: 360px; position: relative; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.8); flex-shrink: 0; margin-bottom: 24px; page-break-after: always; }
 
@@ -103,7 +105,11 @@ body { background: #111; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans
 `
 
 const TOGGLE_JS = `
+var _marginMode = 'excl';
+var _lang = 'en';
+
 function setLang(lang) {
+  _lang = lang;
   document.querySelectorAll('.lang-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.lang === lang)
   );
@@ -111,7 +117,34 @@ function setLang(lang) {
     const t = el.getAttribute('data-' + lang);
     if (t !== null) el.innerHTML = t;
   });
+  // Re-apply margin method label in new language
+  document.querySelectorAll('.margin-method').forEach(el => {
+    const t = el.getAttribute('data-' + _marginMode + '-' + lang);
+    if (t !== null) el.textContent = t;
+  });
+  document.querySelectorAll('.margin-header').forEach(el => {
+    const t = el.getAttribute('data-' + _marginMode + '-' + lang);
+    if (t !== null) el.textContent = t;
+  });
   document.documentElement.lang = lang;
+}
+
+function setMarginMode(mode) {
+  _marginMode = mode;
+  document.querySelectorAll('.margin-mode-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.margin === mode)
+  );
+  document.querySelectorAll('.margin-val').forEach(el => {
+    el.textContent = el.getAttribute('data-' + mode) || '–';
+  });
+  document.querySelectorAll('.margin-method').forEach(el => {
+    const t = el.getAttribute('data-' + mode + '-' + _lang);
+    if (t !== null) el.textContent = t;
+  });
+  document.querySelectorAll('.margin-header').forEach(el => {
+    const t = el.getAttribute('data-' + mode + '-' + _lang);
+    if (t !== null) el.textContent = t;
+  });
 }
 `
 
@@ -160,6 +193,10 @@ export function buildDeck(data: DeckData, pdcLogoUri: string): string {
 <div class="lang-controls">
   <button class="lang-btn${initialLang === 'en' ? ' active' : ''}" data-lang="en" onclick="setLang('en')">EN</button>
   <button class="lang-btn${initialLang === 'nl' ? ' active' : ''}" data-lang="nl" onclick="setLang('nl')">NL</button>
+  <div class="ctrl-sep"></div>
+  <span class="ctrl-label">Margin</span>
+  <button class="lang-btn margin-mode-btn active" data-margin="excl" onclick="setMarginMode('excl')">Excl.</button>
+  <button class="lang-btn margin-mode-btn" data-margin="incl" onclick="setMarginMode('incl')">Incl.</button>
 </div>
 ${slides.join('\n')}
 <script>${TOGGLE_JS}setLang('${initialLang}');</script>

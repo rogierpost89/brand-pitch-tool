@@ -158,17 +158,12 @@ export function pricingSlide(opts: {
           <div class="ps" data-en="Buying price · incl. duty" data-nl="Inkoopprijs · incl. accijns">Buying price · incl. duty</div>
         </div>
       </div>
-      <div class="prow">
-        <div class="pcard">
-          <div class="pl" data-en="Margin (excl.)" data-nl="Marge (excl.)">Margin (excl.)</div>
-          <div class="pv">${escHtml(product.prices.marginExcl)}</div>
-          <div class="ps" data-en="Calculated on excl. price" data-nl="Berekend op excl. prijs">Calculated on excl. price</div>
-        </div>
-        <div class="pcard">
-          <div class="pl" data-en="Margin (incl.)" data-nl="Marge (incl.)">Margin (incl.)</div>
-          <div class="pv">${escHtml(product.prices.marginIncl)}</div>
-          <div class="ps" data-en="Calculated on incl. price" data-nl="Berekend op incl. prijs">Calculated on incl. price</div>
-        </div>
+      <div class="pcard">
+        <div class="pl" data-en="Your Retail Margin" data-nl="Uw detailhandelmarge">Your Retail Margin</div>
+        <div class="pv margin-val" data-excl="${escHtml(product.prices.marginExcl)}" data-incl="${escHtml(product.prices.marginIncl)}">${escHtml(product.prices.marginExcl)}</div>
+        <div class="ps margin-method"
+          data-excl-en="Calculated on excl. excise" data-excl-nl="Op basis van excl. accijns"
+          data-incl-en="Calculated on incl. excise" data-incl-nl="Op basis van incl. accijns">Calculated on excl. excise</div>
       </div>
     </div>
     <div class="why-col">
@@ -200,8 +195,7 @@ export function overviewSlide(opts: {
       <td>${escHtml(p.prices.deliveryPriceExcl)}</td>
       <td>${escHtml(p.prices.deliveryPriceIncl)}</td>
       <td class="rsp-val">${escHtml(p.prices.rsp)}</td>
-      <td><span class="mpill">${escHtml(p.prices.marginExcl)}</span></td>
-      <td><span class="mpill">${escHtml(p.prices.marginIncl)}</span></td>
+      <td><span class="mpill margin-val" data-excl="${escHtml(p.prices.marginExcl)}" data-incl="${escHtml(p.prices.marginIncl)}">${escHtml(p.prices.marginExcl)}</span></td>
       <td class="vol-val">${p.annual_volume_btl.toLocaleString('en-US')}</td>
     </tr>`)
   ).join('')
@@ -221,8 +215,7 @@ export function overviewSlide(opts: {
         <th data-en="Excl. Excise" data-nl="Excl. Accijns">Excl. Excise</th>
         <th data-en="Incl. Excise" data-nl="Incl. Accijns">Incl. Excise</th>
         <th data-en="RSP" data-nl="Adv. Prijs">RSP</th>
-        <th data-en="Margin Excl." data-nl="Marge Excl.">Margin Excl.</th>
-        <th data-en="Margin Incl." data-nl="Marge Incl.">Margin Incl.</th>
+        <th class="margin-header" data-excl-en="Margin Excl." data-excl-nl="Marge Excl." data-incl-en="Margin Incl." data-incl-nl="Marge Incl.">Margin Excl.</th>
         <th data-en="Annual Vol (btl)" data-nl="Jaarl. Vol (fl)">Annual Vol (btl)</th>
       </tr>
     </thead>

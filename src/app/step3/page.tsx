@@ -69,6 +69,13 @@ export default function Step3() {
   const effectiveNl = useCallback((key: string) =>
     userEdits[key] ?? nlFields[key] ?? enFields[key], [userEdits, nlFields, enFields])
 
+  function calcMarginPct(rsp: string, cost: string): string {
+    const r = parseFloat(rsp.replace(/[^0-9.]/g, ''))
+    const c = parseFloat(cost.replace(/[^0-9.]/g, ''))
+    if (!r || !c || r <= 0) return ''
+    return Math.round((1 - c / r) * 100) + '%'
+  }
+
   async function generate() {
     if (!state) return
     setGenerating(true)
@@ -85,18 +92,21 @@ export default function Step3() {
 
     const brands = state.brandsAssets.map(ba => {
       const bc = ba.brandContent
-      const products = (bc?.products ?? []).map(p => ({
-        ...p,
-        prices: priceIndex[p.id]
-          ? {
-              deliveryPriceExcl: priceIndex[p.id].deliveryPriceExcl,
-              deliveryPriceIncl: priceIndex[p.id].deliveryPriceIncl,
-              rsp: priceIndex[p.id].rsp,
-              marginExcl: priceIndex[p.id].marginExcl,
-              marginIncl: priceIndex[p.id].marginIncl,
-            }
-          : { deliveryPriceExcl: '–', deliveryPriceIncl: '–', rsp: '–', marginExcl: '–', marginIncl: '–' },
-      }))
+      const products = (bc?.products ?? []).map(p => {
+        const row = priceIndex[p.id]
+        return {
+          ...p,
+          prices: row
+            ? {
+                deliveryPriceExcl: row.deliveryPriceExcl,
+                deliveryPriceIncl: row.deliveryPriceIncl,
+                rsp: row.rsp,
+                marginExcl: row.marginExcl || calcMarginPct(row.rsp, row.deliveryPriceExcl),
+                marginIncl: row.marginIncl || calcMarginPct(row.rsp, row.deliveryPriceIncl),
+              }
+            : { deliveryPriceExcl: '–', deliveryPriceIncl: '–', rsp: '–', marginExcl: '–', marginIncl: '–' },
+        }
+      })
       return {
         name: bc?.name ?? ba.url,
         intro: bc?.intro ?? '',
