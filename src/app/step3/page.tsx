@@ -88,8 +88,14 @@ export default function Step3() {
       const products = (bc?.products ?? []).map(p => ({
         ...p,
         prices: priceIndex[p.id]
-          ? { deliveryPrice: priceIndex[p.id].deliveryPrice, rsp: priceIndex[p.id].rsp, margin: priceIndex[p.id].margin }
-          : { deliveryPrice: '–', rsp: '–', margin: '–' },
+          ? {
+              deliveryPriceExcl: priceIndex[p.id].deliveryPriceExcl,
+              deliveryPriceIncl: priceIndex[p.id].deliveryPriceIncl,
+              rsp: priceIndex[p.id].rsp,
+              marginExcl: priceIndex[p.id].marginExcl,
+              marginIncl: priceIndex[p.id].marginIncl,
+            }
+          : { deliveryPriceExcl: '–', deliveryPriceIncl: '–', rsp: '–', marginExcl: '–', marginIncl: '–' },
       }))
       return {
         name: bc?.name ?? ba.url,

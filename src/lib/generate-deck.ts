@@ -70,6 +70,8 @@ body { background: #111; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans
 .s-pricing .bottle-zone { width: 110px; background: #f6f6f6; display: flex; align-items: center; justify-content: center; padding: 10px 8px; border-right: 1px solid #eee; }
 .s-pricing .bottle-zone img { max-height: 100%; max-width: 100%; object-fit: contain; }
 .s-pricing .numbers { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 14px 12px; }
+.s-pricing .prow { display: flex; gap: 6px; }
+.s-pricing .prow .pcard { flex: 1; }
 .pcard { border: 1px solid #e8e8e8; padding: 8px 12px; background: #fff; }
 .pcard .pl { font-size: 8.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; margin-bottom: 2px; }
 .pcard .pv { font-size: 17px; font-weight: 700; color: #000; line-height: 1; }

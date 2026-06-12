@@ -156,10 +156,12 @@ export default function Step2() {
             {priceRows.map((row, i) => (
               <div key={i} className="flex gap-3 text-xs font-mono text-zinc-600">
                 <span className="text-zinc-400 w-28 truncate">{row.productId}</span>
-                <span className="text-zinc-600 w-24 truncate">{row.brandName}</span>
-                <span>{row.deliveryPrice}</span>
+                <span className="text-zinc-600 w-20 truncate">{row.brandName}</span>
+                <span className="text-zinc-500">excl {row.deliveryPriceExcl}</span>
+                <span className="text-zinc-500">incl {row.deliveryPriceIncl}</span>
                 <span className="text-zinc-700">RSP {row.rsp}</span>
-                <span className="text-zinc-700">{row.margin}</span>
+                <span className="text-zinc-700">m.excl {row.marginExcl}</span>
+                <span className="text-zinc-700">m.incl {row.marginIncl}</span>
               </div>
             ))}
           </div>

@@ -3,14 +3,22 @@ import type { PriceRow } from './types'
 
 // Flexible keyword matchers — order matters (most specific first)
 const MATCHERS: Array<{ key: keyof PriceRow; test: (cell: string) => boolean }> = [
-  { key: 'deliveryPrice', test: c => c.includes('delivery') && c.includes('price') },
-  { key: 'deliveryPrice', test: c => c.includes('direct') && c.includes('price') },
-  { key: 'rsp',           test: c => c.includes('rsp') },
-  { key: 'rsp',           test: c => c.includes('consumer') && (c.includes('price') || c.includes('retail')) },
-  { key: 'margin',        test: c => c.includes('margin') },
-  { key: 'productId',     test: c => c.includes('product') || c.includes('sku') },
-  { key: 'brandName',     test: c => c.includes('brand') && c.includes('name') },
-  { key: 'brandName',     test: c => c === 'brand' },
+  // Excl. excise price — must check before generic price matchers
+  { key: 'deliveryPriceExcl', test: c => (c.includes('excl') || c.includes('ex ') || c.includes('ex.') || c.includes('netto')) && (c.includes('price') || c.includes('prijs') || c.includes('delivery') || c.includes('buying') || c.includes('purchase') || c.includes('levering')) },
+  // Incl. excise price
+  { key: 'deliveryPriceIncl', test: c => (c.includes('incl') || c.includes('inc ') || c.includes('brutto')) && (c.includes('price') || c.includes('prijs') || c.includes('delivery') || c.includes('buying') || c.includes('purchase') || c.includes('levering')) },
+  // Margin excl. excise — check before generic margin
+  { key: 'marginExcl',        test: c => (c.includes('margin') || c.includes('marge')) && (c.includes('excl') || c.includes('ex ') || c.includes('ex.')) },
+  // Margin incl. excise
+  { key: 'marginIncl',        test: c => (c.includes('margin') || c.includes('marge')) && (c.includes('incl') || c.includes('inc ')) },
+  // RSP
+  { key: 'rsp',               test: c => c.includes('rsp') },
+  { key: 'rsp',               test: c => c.includes('consumer') && (c.includes('price') || c.includes('retail')) },
+  // Fallbacks: unqualified "delivery price" treated as excl. (old-style single-price Excels)
+  { key: 'deliveryPriceExcl', test: c => (c.includes('delivery') || c.includes('direct') || c.includes('buying')) && c.includes('price') },
+  { key: 'productId',         test: c => c.includes('product') || c.includes('sku') },
+  { key: 'brandName',         test: c => c.includes('brand') && c.includes('name') },
+  { key: 'brandName',         test: c => c === 'brand' },
 ]
 
 function matchLabel(cell: string): keyof PriceRow | null {
@@ -39,7 +47,7 @@ function tryTransposedLayout(rows: (string | number)[][]): PriceRow[] | null {
     }
   })
 
-  const required: Array<keyof PriceRow> = ['productId', 'deliveryPrice', 'rsp', 'margin']
+  const required: Array<keyof PriceRow> = ['productId', 'deliveryPriceExcl', 'rsp']
   if (required.some(k => labelRowIndex[k] === undefined)) return null
 
   const productIdRow = rows[labelRowIndex.productId!]
@@ -51,12 +59,12 @@ function tryTransposedLayout(rows: (string | number)[][]): PriceRow[] | null {
 
     results.push({
       productId,
-      brandName: labelRowIndex.brandName !== undefined
-        ? String(rows[labelRowIndex.brandName]?.[col] ?? '').trim()
-        : '',
-      deliveryPrice: String(rows[labelRowIndex.deliveryPrice!]?.[col] ?? '').trim(),
-      rsp:           String(rows[labelRowIndex.rsp!]?.[col] ?? '').trim(),
-      margin:        String(rows[labelRowIndex.margin!]?.[col] ?? '').trim(),
+      brandName:        labelRowIndex.brandName !== undefined ? String(rows[labelRowIndex.brandName]?.[col] ?? '').trim() : '',
+      deliveryPriceExcl: String(rows[labelRowIndex.deliveryPriceExcl!]?.[col] ?? '').trim(),
+      deliveryPriceIncl: labelRowIndex.deliveryPriceIncl !== undefined ? String(rows[labelRowIndex.deliveryPriceIncl]?.[col] ?? '').trim() : '',
+      rsp:               String(rows[labelRowIndex.rsp!]?.[col] ?? '').trim(),
+      marginExcl:        labelRowIndex.marginExcl !== undefined ? String(rows[labelRowIndex.marginExcl]?.[col] ?? '').trim() : '',
+      marginIncl:        labelRowIndex.marginIncl !== undefined ? String(rows[labelRowIndex.marginIncl]?.[col] ?? '').trim() : '',
     })
   }
 
@@ -75,7 +83,7 @@ function tryTabularLayout(rows: (string | number)[][]): PriceRow[] | null {
     if (key && colIndex[key] === undefined) colIndex[key] = c
   })
 
-  const required: Array<keyof PriceRow> = ['productId', 'deliveryPrice', 'rsp', 'margin']
+  const required: Array<keyof PriceRow> = ['productId', 'deliveryPriceExcl', 'rsp']
   if (required.some(k => colIndex[k] === undefined)) return null
 
   const results: PriceRow[] = []
@@ -85,10 +93,12 @@ function tryTabularLayout(rows: (string | number)[][]): PriceRow[] | null {
     if (!productId) continue
     results.push({
       productId,
-      brandName:     colIndex.brandName !== undefined ? String(row[colIndex.brandName] ?? '').trim() : '',
-      deliveryPrice: String(row[colIndex.deliveryPrice!] ?? '').trim(),
-      rsp:           String(row[colIndex.rsp!] ?? '').trim(),
-      margin:        String(row[colIndex.margin!] ?? '').trim(),
+      brandName:         colIndex.brandName !== undefined ? String(row[colIndex.brandName] ?? '').trim() : '',
+      deliveryPriceExcl: String(row[colIndex.deliveryPriceExcl!] ?? '').trim(),
+      deliveryPriceIncl: colIndex.deliveryPriceIncl !== undefined ? String(row[colIndex.deliveryPriceIncl] ?? '').trim() : '',
+      rsp:               String(row[colIndex.rsp!] ?? '').trim(),
+      marginExcl:        colIndex.marginExcl !== undefined ? String(row[colIndex.marginExcl] ?? '').trim() : '',
+      marginIncl:        colIndex.marginIncl !== undefined ? String(row[colIndex.marginIncl] ?? '').trim() : '',
     })
   }
 
@@ -115,6 +125,7 @@ export function parseExcel(buffer: Buffer): PriceRow[] {
 
   throw new Error(
     `Could not find pricing data in any tab. ${errors.join(' | ')}. ` +
-    `Need columns/rows labelled with: product/SKU, delivery price, RSP, margin.`
+    `Need columns/rows labelled with: product/SKU, delivery price excl. excise, RSP. ` +
+    `Optionally: delivery price incl. excise, margin excl., margin incl.`
   )
 }

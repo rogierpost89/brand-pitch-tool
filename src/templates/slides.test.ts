@@ -25,7 +25,7 @@ const MOCK_PRODUCT: DeckProduct = {
   annual_volume_btl: 2400,
   image_url: '',
   imageDataUri: 'data:image/png;base64,ghi',
-  prices: { deliveryPrice: '€8.50', rsp: '€17.95', margin: '28%' },
+  prices: { deliveryPriceExcl: '€7.20', deliveryPriceIncl: '€8.50', rsp: '€17.95', marginExcl: '28%', marginIncl: '22%' },
 }
 
 const MOCK_BRAND: DeckBrand = {

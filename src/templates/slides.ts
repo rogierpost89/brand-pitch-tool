@@ -141,20 +141,34 @@ export function pricingSlide(opts: {
       <img src="${product.imageDataUri}" alt="${escHtml(product.name)}" />
     </div>
     <div class="numbers">
-      <div class="pcard">
-        <div class="pl" data-en="Direct Delivery Price" data-nl="Directe Leveringsprijs">Direct Delivery Price</div>
-        <div class="pv">${escHtml(product.prices.deliveryPrice)}</div>
-        <div class="ps" data-en="What you pay · incl. excise" data-nl="Wat u betaalt · incl. accijns">What you pay · incl. excise</div>
-      </div>
       <div class="pcard hl">
         <div class="pl" data-en="Consumer RSP" data-nl="Consumentenadviesprijs">Consumer RSP</div>
         <div class="pv">${escHtml(product.prices.rsp)}</div>
         <div class="ps" data-en="Shelf price · incl. VAT 21%" data-nl="Winkelprijs · incl. BTW 21%">Shelf price · incl. VAT 21%</div>
       </div>
-      <div class="pcard">
-        <div class="pl" data-en="Your Retail Margin" data-nl="Uw detailhandelmarge">Your Retail Margin</div>
-        <div class="pv">${escHtml(product.prices.margin)}</div>
-        <div class="ps" data-en="Off-trade standard" data-nl="Off-trade standaard">Off-trade standard</div>
+      <div class="prow">
+        <div class="pcard">
+          <div class="pl" data-en="Price Excl. Excise" data-nl="Prijs Excl. Accijns">Price Excl. Excise</div>
+          <div class="pv">${escHtml(product.prices.deliveryPriceExcl)}</div>
+          <div class="ps" data-en="Buying price · excl. duty" data-nl="Inkoopprijs · excl. accijns">Buying price · excl. duty</div>
+        </div>
+        <div class="pcard">
+          <div class="pl" data-en="Price Incl. Excise" data-nl="Prijs Incl. Accijns">Price Incl. Excise</div>
+          <div class="pv">${escHtml(product.prices.deliveryPriceIncl)}</div>
+          <div class="ps" data-en="Buying price · incl. duty" data-nl="Inkoopprijs · incl. accijns">Buying price · incl. duty</div>
+        </div>
+      </div>
+      <div class="prow">
+        <div class="pcard">
+          <div class="pl" data-en="Margin (excl.)" data-nl="Marge (excl.)">Margin (excl.)</div>
+          <div class="pv">${escHtml(product.prices.marginExcl)}</div>
+          <div class="ps" data-en="Calculated on excl. price" data-nl="Berekend op excl. prijs">Calculated on excl. price</div>
+        </div>
+        <div class="pcard">
+          <div class="pl" data-en="Margin (incl.)" data-nl="Marge (incl.)">Margin (incl.)</div>
+          <div class="pv">${escHtml(product.prices.marginIncl)}</div>
+          <div class="ps" data-en="Calculated on incl. price" data-nl="Berekend op incl. prijs">Calculated on incl. price</div>
+        </div>
       </div>
     </div>
     <div class="why-col">
@@ -183,10 +197,11 @@ export function overviewSlide(opts: {
         </div>
       </td>
       <td class="brand-cell">${escHtml(brand.name)}</td>
-      <td>${escHtml(p.intro.split('.')[0])}</td>
-      <td>${escHtml(p.prices.deliveryPrice)}</td>
+      <td>${escHtml(p.prices.deliveryPriceExcl)}</td>
+      <td>${escHtml(p.prices.deliveryPriceIncl)}</td>
       <td class="rsp-val">${escHtml(p.prices.rsp)}</td>
-      <td><span class="mpill">${escHtml(p.prices.margin)}</span></td>
+      <td><span class="mpill">${escHtml(p.prices.marginExcl)}</span></td>
+      <td><span class="mpill">${escHtml(p.prices.marginIncl)}</span></td>
       <td class="vol-val">${p.annual_volume_btl.toLocaleString('en-US')}</td>
     </tr>`)
   ).join('')
@@ -203,10 +218,11 @@ export function overviewSlide(opts: {
       <tr>
         <th data-en="Product" data-nl="Product">Product</th>
         <th data-en="Brand" data-nl="Merk">Brand</th>
-        <th data-en="Type" data-nl="Type">Type</th>
-        <th data-en="Del. Price" data-nl="Lev. Prijs">Del. Price</th>
-        <th data-en="Consumer RSP" data-nl="Cons. Adviesprijs">Consumer RSP</th>
-        <th data-en="Margin" data-nl="Marge">Margin</th>
+        <th data-en="Excl. Excise" data-nl="Excl. Accijns">Excl. Excise</th>
+        <th data-en="Incl. Excise" data-nl="Incl. Accijns">Incl. Excise</th>
+        <th data-en="RSP" data-nl="Adv. Prijs">RSP</th>
+        <th data-en="Margin Excl." data-nl="Marge Excl.">Margin Excl.</th>
+        <th data-en="Margin Incl." data-nl="Marge Incl.">Margin Incl.</th>
         <th data-en="Annual Vol (btl)" data-nl="Jaarl. Vol (fl)">Annual Vol (btl)</th>
       </tr>
     </thead>

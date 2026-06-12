@@ -29,9 +29,11 @@ export interface YamlInput {
 export interface PriceRow {
   productId: string
   brandName: string
-  deliveryPrice: string
+  deliveryPriceExcl: string   // buying price excl. excise
+  deliveryPriceIncl: string   // buying price incl. excise
   rsp: string
-  margin: string
+  marginExcl: string          // margin calculated on excl. excise price
+  marginIncl: string          // margin calculated on incl. excise price
 }
 
 export interface BrandAssets {
@@ -50,9 +52,11 @@ export interface BrandAssetsEmbedded {
 }
 
 export interface PriceData {
-  deliveryPrice: string
+  deliveryPriceExcl: string
+  deliveryPriceIncl: string
   rsp: string
-  margin: string
+  marginExcl: string
+  marginIncl: string
 }
 
 export interface DeckProduct extends Product {
