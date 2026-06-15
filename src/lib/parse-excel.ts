@@ -70,45 +70,58 @@ function tryTabularLayout(rows: (string | number)[][]): PriceRow[] | null {
   return null
 }
 
-/** Try transposed layout: labels in column A, products in columns B, C, … */
+/** Try transposed layout: labels in column A/B, products in columns to the right. */
 function tryTransposedLayout(rows: (string | number)[][]): PriceRow[] | null {
-  const labelRowIndex: Partial<Record<keyof PriceRow, number>> = {}
+  // Collect ALL row indices that match each label key (not just the first)
+  const allCandidates: Partial<Record<keyof PriceRow, number[]>> = {}
 
   rows.forEach((row, i) => {
     for (let c = 0; c < 5; c++) {
       const cell = String(row[c] ?? '').trim()
       if (!cell) continue
       const key = matchLabel(cell)
-      if (key && labelRowIndex[key] === undefined) {
-        labelRowIndex[key] = i
+      if (key) {
+        if (!allCandidates[key]) allCandidates[key] = []
+        allCandidates[key]!.push(i)
         break
       }
     }
   })
 
   const required: Array<keyof PriceRow> = ['productId', 'deliveryPriceExcl', 'rsp']
-  if (required.some(k => labelRowIndex[k] === undefined)) return null
+  if (required.some(k => !allCandidates[k]?.length)) return null
 
-  const productIdRow = rows[labelRowIndex.productId!]
-  const results: PriceRow[] = []
-
-  for (let col = 1; col < productIdRow.length; col++) {
-    const productId = String(productIdRow[col] ?? '').trim()
-    // Skip empty or header-like values
-    if (!productId || matchLabel(productId) !== null) continue
-
-    results.push({
-      productId,
-      brandName:         labelRowIndex.brandName         !== undefined ? String(rows[labelRowIndex.brandName]?.[col]         ?? '').trim() : '',
-      deliveryPriceExcl: String(rows[labelRowIndex.deliveryPriceExcl!]?.[col] ?? '').trim(),
-      deliveryPriceIncl: labelRowIndex.deliveryPriceIncl !== undefined ? String(rows[labelRowIndex.deliveryPriceIncl]?.[col] ?? '').trim() : '',
-      rsp:               String(rows[labelRowIndex.rsp!]?.[col]               ?? '').trim(),
-      marginExcl:        labelRowIndex.marginExcl        !== undefined ? String(rows[labelRowIndex.marginExcl]?.[col]        ?? '').trim() : '',
-      marginIncl:        labelRowIndex.marginIncl        !== undefined ? String(rows[labelRowIndex.marginIncl]?.[col]        ?? '').trim() : '',
-    })
+  // Use first found row for non-productId fields
+  const labelRowIndex: Partial<Record<keyof PriceRow, number>> = {}
+  for (const key of Object.keys(allCandidates) as (keyof PriceRow)[]) {
+    if (key !== 'productId') labelRowIndex[key] = allCandidates[key]![0]
   }
 
-  return results.length > 0 ? results : null
+  // Try each candidate productId row — pick the first one that yields valid products
+  for (const pidRowIdx of allCandidates.productId!) {
+    const productIdRow = rows[pidRowIdx]
+    const results: PriceRow[] = []
+
+    for (let col = 1; col < productIdRow.length; col++) {
+      const productId = String(productIdRow[col] ?? '').trim()
+      // Skip empty or header-like values
+      if (!productId || matchLabel(productId) !== null) continue
+
+      results.push({
+        productId,
+        brandName:         labelRowIndex.brandName         !== undefined ? String(rows[labelRowIndex.brandName]?.[col]         ?? '').trim() : '',
+        deliveryPriceExcl: String(rows[labelRowIndex.deliveryPriceExcl!]?.[col] ?? '').trim(),
+        deliveryPriceIncl: labelRowIndex.deliveryPriceIncl !== undefined ? String(rows[labelRowIndex.deliveryPriceIncl]?.[col] ?? '').trim() : '',
+        rsp:               String(rows[labelRowIndex.rsp!]?.[col]               ?? '').trim(),
+        marginExcl:        labelRowIndex.marginExcl        !== undefined ? String(rows[labelRowIndex.marginExcl]?.[col]        ?? '').trim() : '',
+        marginIncl:        labelRowIndex.marginIncl        !== undefined ? String(rows[labelRowIndex.marginIncl]?.[col]        ?? '').trim() : '',
+      })
+    }
+
+    if (results.length > 0) return results
+  }
+
+  return null
 }
 
 export function parseExcel(buffer: Buffer): PriceRow[] {
