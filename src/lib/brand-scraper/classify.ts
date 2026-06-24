@@ -8,15 +8,30 @@ const ICON_FILE_HINT = /\.(svg|ico)$/i
  * Pick the brand logo URL.
  *
  * Rules, in priority order:
- *  1. An image whose alt OR filename matches /logo|brandmark|wordmark/.
- *  2. The site's apple-touch-icon (typically the highest-res square logo).
- *  3. The favicon.
- *  4. Empty string if nothing matches.
+ *  1. An image inside the page header that matches the logo hint. This wins over
+ *     other matches because product images sometimes contain "logo" in their
+ *     filename (e.g. a tequila brand photo named "ArteNOM-logo-2020.jpg") and
+ *     should not be picked as the site logo.
+ *  2. Any image inside the page header (regardless of filename).
+ *  3. An image anywhere on the page whose alt or filename matches the logo hint.
+ *  4. The site's apple-touch-icon (typically the highest-res square logo).
+ *  5. The favicon.
+ *  6. Empty string if nothing matches.
  *
  * Inline SVG logos are common but cannot be referenced by URL — those are
  * better handled via brand-asset upload in the UI, so we ignore them here.
  */
 export function pickLogo(raw: RawPageData): string {
+  const headerHinted = raw.images.find(
+    i => i.inHeader && (LOGO_HINT.test(i.alt) || LOGO_HINT.test(i.filename)),
+  )
+  if (headerHinted) return headerHinted.src
+
+  const headerAny = raw.images
+    .filter(i => i.inHeader && !ICON_FILE_HINT.test(i.filename))
+    .sort((a, b) => b.areaPx - a.areaPx)[0]
+  if (headerAny) return headerAny.src
+
   const named = raw.images.find(
     i => LOGO_HINT.test(i.alt) || LOGO_HINT.test(i.filename),
   )

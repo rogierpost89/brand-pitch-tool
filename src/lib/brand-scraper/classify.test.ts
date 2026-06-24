@@ -50,6 +50,28 @@ describe('pickLogo', () => {
   it('returns empty string when nothing matches', () => {
     expect(pickLogo(page())).toBe('')
   })
+
+  it('prefers an in-header image over a body image whose filename happens to include "logo"', () => {
+    // Real-world case: a tequila product photo with "logo" in its filename,
+    // and the actual site logo sitting in the header without that hint.
+    const p = page({
+      images: [
+        img({ src: 'https://x/Tequila-ArteNOM-logo-2020.jpg', filename: 'tequila-artenom-logo-2020.jpg', width: 1024, height: 1024, inHeader: false }),
+        img({ src: 'https://x/site-mark.png', filename: 'site-mark.png', alt: '', width: 200, height: 60, inHeader: true }),
+      ],
+    })
+    expect(pickLogo(p)).toBe('https://x/site-mark.png')
+  })
+
+  it('still falls back to filename hint when nothing is in the header', () => {
+    const p = page({
+      images: [
+        img({ src: 'https://x/brand-logo.svg', filename: 'brand-logo.svg', width: 200, height: 60, inHeader: false }),
+        img({ src: 'https://x/photo.jpg', filename: 'photo.jpg', width: 1000, height: 700, inHeader: false }),
+      ],
+    })
+    expect(pickLogo(p)).toBe('https://x/brand-logo.svg')
+  })
 })
 
 describe('pickHero', () => {

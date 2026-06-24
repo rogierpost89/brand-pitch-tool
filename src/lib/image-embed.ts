@@ -2,6 +2,8 @@ const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
 
 export async function imageToDataUri(url: string): Promise<string> {
   if (!url) return ''
+  // Already a data URI — return as-is. Used by per-product image overrides from Step 3.
+  if (url.startsWith('data:')) return url
   const res = await fetch(url, {
     headers: { 'User-Agent': UA },
   })

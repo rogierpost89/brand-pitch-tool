@@ -23,6 +23,8 @@ interface IncomingProduct extends ExtractedProduct {
     marginExcl: string
     marginIncl: string
   }
+  /** Per-product image override (data URI) from Step 3 upload. Takes precedence over scraped image. */
+  imageOverrideDataUri?: string
 }
 
 interface IncomingBrand {
@@ -77,7 +79,8 @@ export async function POST(req: NextRequest) {
             applyOverride(translationOverrides, `why_${i}_${bi}_${p.id}`, w),
           ),
           annualVolumeBtl: p.annual_volume_btl ?? 0,
-          imageDataUri: productDataUris[idx] || '',
+          // Override (uploaded data URI) takes precedence over the scraped image.
+          imageDataUri: p.imageOverrideDataUri || productDataUris[idx] || '',
           prices: p.prices,
         }))
 

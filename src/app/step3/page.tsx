@@ -51,7 +51,7 @@ function calcMarginPct(rsp: string, cost: string): string {
   return Math.round((1 - c / r) * 100) + '%'
 }
 
-const COL_HEADERS = ['Product', 'Brand', 'Price Excl.', 'Price Incl.', 'RSP', 'Margin Excl.', 'Margin Incl.', 'Volume (btl)']
+const COL_HEADERS = ['Image', 'Product', 'Brand', 'Price Excl.', 'Price Incl.', 'RSP', 'Margin Excl.', 'Margin Incl.', 'Volume (btl)']
 const EDITABLE_FIELDS: (keyof EditableRow)[] = [
   'name', 'brandName', 'deliveryPriceExcl', 'deliveryPriceIncl', 'rsp', 'marginExcl', 'marginIncl', 'annual_volume_btl',
 ]
@@ -66,6 +66,7 @@ export default function Step3() {
   const [userEdits, setUserEdits] = useState<TranslationMap>({})
   const [generating, setGenerating] = useState(false)
   const [marginMode, setMarginMode] = useState<'excl' | 'incl'>('excl')
+  const [productImageOverrides, setProductImageOverrides] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -120,6 +121,34 @@ export default function Step3() {
     setEditableRows(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r))
   }
 
+  function uploadProductImage(productId: string, file: File) {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result
+      if (typeof result === 'string') {
+        setProductImageOverrides(prev => ({ ...prev, [productId]: result }))
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function clearProductImage(productId: string) {
+    setProductImageOverrides(prev => {
+      const next = { ...prev }
+      delete next[productId]
+      return next
+    })
+  }
+
+  function scrapedImageFor(productId: string): string {
+    if (!state) return ''
+    for (const ba of state.brandsAssets) {
+      const p = ba.brandContent?.products.find(pp => pp.id === productId)
+      if (p?.image_url) return p.image_url
+    }
+    return ''
+  }
+
   function autoCalcRow(idx: number) {
     setEditableRows(prev => prev.map((r, i) => {
       if (i !== idx) return r
@@ -152,6 +181,7 @@ export default function Step3() {
         const ed = editedMap[p.id]
         return {
           ...p,
+          imageOverrideDataUri: productImageOverrides[p.id] || undefined,
           annual_volume_btl: ed ? (parseFloat(ed.annual_volume_btl) || 0) : (p.annual_volume_btl ?? 0),
           prices: ed
             ? {
@@ -235,25 +265,64 @@ export default function Step3() {
                 </tr>
               </thead>
               <tbody>
-                {editableRows.map((row, i) => (
-                  <tr key={row.id} className="border-b border-zinc-900 last:border-0">
-                    {EDITABLE_FIELDS.map(field => (
-                      <td key={field} className="px-1 py-1">
-                        <input
-                          className="w-full bg-transparent text-zinc-300 outline-none px-1 py-1 focus:bg-zinc-900 focus:text-white rounded-sm"
-                          value={row[field]}
-                          onChange={e => updateRow(i, field, e.target.value)}
-                          onBlur={() => {
-                            if (field === 'rsp' || field === 'deliveryPriceExcl' || field === 'deliveryPriceIncl') {
-                              autoCalcRow(i)
-                            }
-                          }}
-                          style={{ minWidth: field === 'name' ? 120 : field === 'brandName' ? 80 : 72 }}
-                        />
+                {editableRows.map((row, i) => {
+                  const overrideUri = productImageOverrides[row.id]
+                  const scrapedUrl = scrapedImageFor(row.id)
+                  const thumbSrc = overrideUri || scrapedUrl
+                  return (
+                    <tr key={row.id} className="border-b border-zinc-900 last:border-0">
+                      <td className="px-2 py-1 align-middle">
+                        <label className="cursor-pointer flex items-center gap-2 group" title="Upload to override">
+                          {thumbSrc ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={thumbSrc}
+                              alt={row.name}
+                              className={`w-10 h-10 object-contain bg-zinc-900 border ${overrideUri ? 'border-[#f8d418]' : 'border-zinc-800'}`}
+                            />
+                          ) : (
+                            <span className="w-10 h-10 border border-dashed border-zinc-700 text-zinc-700 flex items-center justify-center text-[9px]">none</span>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={e => {
+                              const f = e.target.files?.[0]
+                              if (f) uploadProductImage(row.id, f)
+                              e.target.value = ''
+                            }}
+                          />
+                          {overrideUri && (
+                            <button
+                              type="button"
+                              className="text-[9px] text-zinc-500 hover:text-[#f8d418] underline"
+                              onClick={e => { e.preventDefault(); clearProductImage(row.id) }}
+                              title="Revert to scraped image"
+                            >
+                              revert
+                            </button>
+                          )}
+                        </label>
                       </td>
-                    ))}
-                  </tr>
-                ))}
+                      {EDITABLE_FIELDS.map(field => (
+                        <td key={field} className="px-1 py-1">
+                          <input
+                            className="w-full bg-transparent text-zinc-300 outline-none px-1 py-1 focus:bg-zinc-900 focus:text-white rounded-sm"
+                            value={row[field]}
+                            onChange={e => updateRow(i, field, e.target.value)}
+                            onBlur={() => {
+                              if (field === 'rsp' || field === 'deliveryPriceExcl' || field === 'deliveryPriceIncl') {
+                                autoCalcRow(i)
+                              }
+                            }}
+                            style={{ minWidth: field === 'name' ? 120 : field === 'brandName' ? 80 : 72 }}
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

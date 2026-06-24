@@ -4,10 +4,17 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { BrandAssets, ExtractedBrand, ExtractedProduct } from '@/lib/types'
 
+interface BrandReference {
+  colors: string[]
+  h1FontFamily: string
+  bodyFontFamily: string
+}
+
 interface BrandEntry {
   url: string
   assets: BrandAssets | null
   brandContent: ExtractedBrand | null
+  reference: BrandReference | null  // scraped brand colors/fonts — reference only, never enters the deck
   loading: boolean
   error: string | null
   uploadFile: File | null        // renamed from fallbackFile; now always-visible
@@ -34,7 +41,7 @@ function emptyBrandContent(): ExtractedBrand {
 export default function Step1() {
   const router = useRouter()
   const [brands, setBrands] = useState<BrandEntry[]>([
-    { url: '', assets: null, brandContent: null, loading: false, error: null, uploadFile: null, contentOpen: true },
+    { url: '', assets: null, brandContent: null, reference: null, loading: false, error: null, uploadFile: null, contentOpen: true },
   ])
 
   // Restore state when navigating back from Step 2
@@ -42,12 +49,15 @@ export default function Step1() {
     const stored = sessionStorage.getItem('pdc:brands-assets')
     if (!stored) return
     try {
-      const parsed = JSON.parse(stored) as Array<{ url: string; assets: BrandAssets; brandContent: ExtractedBrand | null }>
+      const parsed = JSON.parse(stored) as Array<{
+        url: string; assets: BrandAssets; brandContent: ExtractedBrand | null; reference?: BrandReference | null
+      }>
       if (parsed.length > 0) {
         setBrands(parsed.map(b => ({
           url: b.url,
           assets: b.assets,
           brandContent: b.brandContent,
+          reference: b.reference ?? null,
           loading: false,
           error: null,
           uploadFile: null,
@@ -159,6 +169,7 @@ export default function Step1() {
       loading: false,
       assets: data.assets,
       brandContent: data.brandContent ?? emptyBrandContent(),
+      reference: data.reference ?? null,
       contentOpen: true,
     })
   }
@@ -233,6 +244,7 @@ export default function Step1() {
       url: b.url,
       assets: b.assets,
       brandContent: b.brandContent,
+      reference: b.reference,
     }))))
     router.push('/step2')
   }
@@ -359,6 +371,36 @@ export default function Step1() {
                 <p className="text-xs text-zinc-500 font-mono mt-2 leading-relaxed">
                   {entry.assets.description}
                 </p>
+              </div>
+            )}
+
+            {entry.reference && (entry.reference.colors.length > 0 || entry.reference.h1FontFamily) && (
+              <div className="mt-3 border-t border-zinc-800 pt-3">
+                <p className="text-[10px] font-bold text-zinc-500 tracking-[2px] uppercase mb-2">
+                  Brand Reference <span className="text-zinc-700">— for sanity check only · never enters the deck</span>
+                </p>
+                {entry.reference.colors.length > 0 && (
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    {entry.reference.colors.slice(0, 8).map((c, i) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <span
+                          className="w-5 h-5 border border-zinc-700"
+                          style={{ background: c }}
+                          title={c}
+                        />
+                        <span className="text-[10px] font-mono text-zinc-600">{c}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="text-[10px] font-mono text-zinc-600 space-y-0.5">
+                  {entry.reference.h1FontFamily && (
+                    <div>h1 font: <span className="text-zinc-400">{entry.reference.h1FontFamily}</span></div>
+                  )}
+                  {entry.reference.bodyFontFamily && (
+                    <div>body font: <span className="text-zinc-400">{entry.reference.bodyFontFamily}</span></div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -526,7 +568,7 @@ export default function Step1() {
         <button
           className="border border-zinc-700 text-zinc-500 text-xs font-bold tracking-[2px] uppercase px-4 py-2 hover:border-zinc-500"
           onClick={() => setBrands(prev => [...prev, {
-            url: '', assets: null, brandContent: null, loading: false, error: null, uploadFile: null, contentOpen: true,
+            url: '', assets: null, brandContent: null, reference: null, loading: false, error: null, uploadFile: null, contentOpen: true,
           }])}
         >
           + Add brand
