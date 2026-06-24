@@ -41,7 +41,7 @@ function emptyBrandContent(): ExtractedBrand {
 export default function Step1() {
   const router = useRouter()
   const [brands, setBrands] = useState<BrandEntry[]>([
-    { url: '', assets: null, brandContent: null, reference: null, loading: false, error: null, uploadFile: null, contentOpen: true },
+    { url: 'https://', assets: null, brandContent: null, reference: null, loading: false, error: null, uploadFile: null, contentOpen: true },
   ])
 
   // Restore state when navigating back from Step 2
@@ -271,13 +271,18 @@ export default function Step1() {
                 className="flex-1 bg-zinc-900 border border-zinc-700 text-white text-sm font-mono px-3 py-2 outline-none focus:border-[#f8d418]"
                 placeholder="https://brand-website.com"
                 value={entry.url}
-                onChange={e => updateBrand(idx, { url: e.target.value })}
+                onChange={e => {
+                  // Always keep the https:// prefix so the user only types the hostname.
+                  let v = e.target.value
+                  if (!v.startsWith('https://')) v = 'https://' + v.replace(/^https?:?\/?\/?/, '')
+                  updateBrand(idx, { url: v })
+                }}
                 onKeyDown={e => e.key === 'Enter' && analyseUrl(idx)}
               />
               <button
                 className="bg-[#f8d418] text-black text-xs font-bold tracking-[2px] uppercase px-4 py-2 disabled:opacity-40"
                 onClick={() => analyseUrl(idx)}
-                disabled={entry.loading || !entry.url}
+                disabled={entry.loading || entry.url === 'https://' || !entry.url}
               >
                 {entry.loading ? 'Scanning…' : 'Analyse'}
               </button>
@@ -568,7 +573,7 @@ export default function Step1() {
         <button
           className="border border-zinc-700 text-zinc-500 text-xs font-bold tracking-[2px] uppercase px-4 py-2 hover:border-zinc-500"
           onClick={() => setBrands(prev => [...prev, {
-            url: '', assets: null, brandContent: null, reference: null, loading: false, error: null, uploadFile: null, contentOpen: true,
+            url: 'https://', assets: null, brandContent: null, reference: null, loading: false, error: null, uploadFile: null, contentOpen: true,
           }])}
         >
           + Add brand
