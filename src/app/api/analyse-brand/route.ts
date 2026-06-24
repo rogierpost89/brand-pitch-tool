@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readCache } from '@/lib/brand-scraper/cache'
-import { urlSlug } from '@/lib/brand-scraper'
+import { readCache, writeCache } from '@/lib/brand-scraper/cache'
+import { scrapeBrand } from '@/lib/brand-scraper'
 import {
   extractAssetsFromImage,
   extractBrandContentFromImage,
@@ -8,8 +8,9 @@ import {
   extractFromPdf,
 } from '@/lib/vision'
 import type { BrandAssets } from '@/lib/types'
+import type { BrandScrapeResult } from '@/lib/brand-scraper/types'
 
-export const maxDuration = 60
+export const maxDuration = 120
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,18 +49,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
     }
 
-    const cache = readCache(url)
+    // Read cache if present; otherwise scrape live and write to cache so the next call is instant.
+    let cache: BrandScrapeResult | null = readCache(url)
     if (!cache) {
-      return NextResponse.json(
-        {
-          error:
-            `No brand-cache entry for this URL. Run the scraper locally first:\n` +
-            `    pnpm scrape ${url}\n` +
-            `Expected file: data/brand-cache/${urlSlug(url)}.json`,
-          fallback: true,
-        },
-        { status: 404 },
-      )
+      try {
+        cache = await scrapeBrand(url)
+        writeCache(url, cache)
+      } catch (err) {
+        return NextResponse.json(
+          {
+            error:
+              `Could not scrape ${url}: ${err instanceof Error ? err.message : 'unknown error'}. ` +
+              `Try uploading a PDF or screenshot instead.`,
+            fallback: true,
+          },
+          { status: 422 },
+        )
+      }
     }
 
     const assets: BrandAssets = {

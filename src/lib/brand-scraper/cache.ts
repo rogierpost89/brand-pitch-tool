@@ -1,5 +1,5 @@
-import { readFileSync, existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs'
+import { resolve, dirname } from 'node:path'
 import type { BrandScrapeResult } from './types'
 import { urlSlug } from './index'
 
@@ -13,4 +13,10 @@ export function readCache(url: string): BrandScrapeResult | null {
   const file = cachePath(url)
   if (!existsSync(file)) return null
   return JSON.parse(readFileSync(file, 'utf8')) as BrandScrapeResult
+}
+
+export function writeCache(url: string, result: BrandScrapeResult): void {
+  const file = cachePath(url)
+  mkdirSync(dirname(file), { recursive: true })
+  writeFileSync(file, JSON.stringify(result, null, 2))
 }
