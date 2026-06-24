@@ -10,8 +10,7 @@ vi.mock('@anthropic-ai/sdk', () => ({
   }),
 }))
 
-import { extractAssetsFromPage, extractAssetsFromImage, extractBrandContentFromImage, extractFromPdf } from './vision'
-import type { ScrapedPage } from './scrape'
+import { extractAssetsFromImage, extractBrandContentFromImage, extractBrandContentFromText, extractFromPdf } from './vision'
 import type { ExtractedBrand } from './types'
 
 const MOCK_ASSETS = {
@@ -28,35 +27,6 @@ const MOCK_RESPONSE = {
 beforeEach(() => {
   vi.resetAllMocks()
   mockCreate.mockResolvedValue(MOCK_RESPONSE)
-})
-
-const MOCK_PAGE: ScrapedPage = {
-  title: 'Example Brand',
-  content: '# Example Brand\nA premium spirits brand from Spain.',
-  images: {
-    'https://example.com/logo.png': 'Example logo',
-    'https://example.com/hero.jpg': 'Hero image',
-  },
-}
-
-describe('extractAssetsFromPage', () => {
-  it('returns parsed brand assets from Claude response', async () => {
-    const result = await extractAssetsFromPage(MOCK_PAGE, 'https://example.com')
-    expect(result.logoUrl).toBe('https://example.com/logo.png')
-    expect(result.heroImageUrl).toBe('https://example.com/hero.jpg')
-    expect(result.productImageUrls).toHaveLength(1)
-    expect(result.description).toContain('Spain')
-  })
-
-  it('throws when Claude returns no JSON', async () => {
-    mockCreate.mockResolvedValueOnce({
-      content: [{ type: 'text', text: 'Sorry, I cannot analyse this page.' }],
-    })
-
-    await expect(
-      extractAssetsFromPage(MOCK_PAGE, 'https://example.com')
-    ).rejects.toThrow('no JSON')
-  })
 })
 
 describe('extractAssetsFromImage', () => {
@@ -134,6 +104,22 @@ const MOCK_PDF_RESULT = {
   },
   brandContent: MOCK_BRAND,
 }
+
+describe('extractBrandContentFromText', () => {
+  it('returns parsed brand content and fills image_url from productImageUrls by index', async () => {
+    mockCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: JSON.stringify(MOCK_BRAND) }],
+    })
+
+    const result = await extractBrandContentFromText(
+      'https://example.com',
+      'Example Brand from Spain. The Example Product is crisp and refreshing.',
+      ['https://example.com/product1.png'],
+    )
+    expect(result.name).toBe('Example Brand')
+    expect(result.products[0].image_url).toBe('https://example.com/product1.png')
+  })
+})
 
 describe('extractFromPdf', () => {
   it('returns assets and brand content from PDF via Claude document API', async () => {

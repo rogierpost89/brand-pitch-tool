@@ -1,51 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { BrandAssets, ExtractedBrand } from './types'
-import type { ScrapedPage } from './scrape'
 
 const client = new Anthropic()
-
-export async function extractAssetsFromPage(
-  page: ScrapedPage,
-  brandUrl: string
-): Promise<BrandAssets> {
-  const origin = new URL(brandUrl).origin
-  const imageList = Object.entries(page.images)
-    .map(([url, desc]) => `${url} — ${desc || 'no description'}`)
-    .join('\n')
-
-  const response = await client.messages.create({
-    model: 'claude-opus-4-7',
-    max_tokens: 1024,
-    messages: [{
-      role: 'user',
-      content: `You are analysing the brand website: ${brandUrl}
-
-PAGE CONTENT (markdown):
-${page.content.slice(0, 8000)}
-
-ALL IMAGES FOUND ON PAGE:
-${imageList.slice(0, 4000)}
-
-Identify the following and return ONLY a JSON object (no markdown, no explanation):
-{
-  "logoUrl": "absolute URL of the brand logo (look for 'logo' in URL/alt/class, header images, SVG files)",
-  "heroImageUrl": "absolute URL of the best lifestyle or hero photo (large, atmospheric, full-bleed)",
-  "productImageUrls": ["absolute URLs of product pack shots / bottle images"],
-  "description": "one paragraph brand description based on page content"
-}
-
-Rules:
-- All URLs must be absolute. If relative, prepend ${origin}
-- productImageUrls should only include actual product images, not UI icons or backgrounds
-- Return only the JSON object, nothing else`,
-    }],
-  })
-
-  const text = response.content[0].type === 'text' ? response.content[0].text : ''
-  const match = text.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('Claude returned no JSON')
-  return JSON.parse(match[0]) as BrandAssets
-}
 
 // Expects a JPEG buffer — client compresses to JPEG via canvas.toBlob before upload
 export async function extractAssetsFromImage(
@@ -232,10 +188,14 @@ Rules:
   return JSON.parse(match[0]) as { assets: BrandAssets; brandContent: ExtractedBrand }
 }
 
-export async function extractBrandContent(
-  page: ScrapedPage,
+/**
+ * Generate ExtractedBrand copy from already-scraped visible text. Used by the cache-backed
+ * flow — the scraper CLI captured the text deterministically, Claude only writes copy.
+ */
+export async function extractBrandContentFromText(
   brandUrl: string,
-  productImageUrls: string[]
+  visibleText: string,
+  productImageUrls: string[],
 ): Promise<ExtractedBrand> {
   const response = await client.messages.create({
     model: 'claude-opus-4-7',
@@ -244,8 +204,8 @@ export async function extractBrandContent(
       role: 'user',
       content: `You are analysing the brand website: ${brandUrl}
 
-PAGE CONTENT:
-${page.content.slice(0, 10000)}
+PAGE TEXT (extracted from the live DOM):
+${visibleText.slice(0, 10000)}
 
 Extract the brand and product information and return ONLY a JSON object (no markdown):
 {
@@ -257,16 +217,8 @@ Extract the brand and product information and return ONLY a JSON object (no mark
       "name": "Product Name",
       "intro": "2-3 sentence product description",
       "tagline": "short punchy tagline",
-      "usps": [
-        "USP 1 — key attribute · detail",
-        "USP 2 — key attribute · detail",
-        "USP 3 — key attribute · detail"
-      ],
-      "why_it_sells": [
-        "Reason 1 why a retailer should stock this",
-        "Reason 2",
-        "Reason 3"
-      ],
+      "usps": ["USP 1 — detail", "USP 2 — detail", "USP 3 — detail"],
+      "why_it_sells": ["Reason 1", "Reason 2", "Reason 3"],
       "annual_volume_btl": 0,
       "image_url": ""
     }
@@ -274,12 +226,10 @@ Extract the brand and product information and return ONLY a JSON object (no mark
 }
 
 Rules:
-- id must be a lowercase slug (e.g. "clarea", "aperitif-rosso")
-- usps should use " · " as separator for sub-points
-- why_it_sells should be retailer-facing reasons (margin, trend, consumer demand)
-- annual_volume_btl is 0 (user will fill this in)
-- image_url is "" (will be filled from scraped product images)
-- Include all products found on the page
+- id is a lowercase slug
+- usps use " · " separator for sub-points
+- why_it_sells are retailer-facing
+- annual_volume_btl is 0; image_url is ""
 - Return only the JSON object`,
     }],
   })
@@ -288,13 +238,9 @@ Rules:
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('Claude returned no JSON for brand content')
   const result = JSON.parse(match[0]) as ExtractedBrand
-
-  // Fill image_url from productImageUrls by index
   result.products.forEach((p, i) => {
-    if (!p.image_url && productImageUrls[i]) {
-      p.image_url = productImageUrls[i]
-    }
+    if (!p.image_url && productImageUrls[i]) p.image_url = productImageUrls[i]
   })
-
   return result
 }
+
