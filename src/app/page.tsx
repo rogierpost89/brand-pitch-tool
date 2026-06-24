@@ -147,6 +147,14 @@ export default function Step1() {
     }))
   }
 
+  function removeProduct(brandIdx: number, productIdx: number) {
+    setBrands(prev => prev.map((b, i) => {
+      if (i !== brandIdx) return b
+      const bc = b.brandContent ?? emptyBrandContent()
+      return { ...b, brandContent: { ...bc, products: bc.products.filter((_, pi) => pi !== productIdx) } }
+    }))
+  }
+
   async function analyseUrl(idx: number) {
     const entry = brands[idx]
     if (!entry.url) return
@@ -448,9 +456,23 @@ export default function Step1() {
                     {/* Per-product fields */}
                     {entry.brandContent.products.map((product, pi) => (
                       <div key={pi} className="border border-zinc-800 p-4 bg-zinc-950">
-                        <p className="text-xs font-bold tracking-[2px] uppercase text-zinc-500 mb-3">
-                          Product {pi + 1}
-                        </p>
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-xs font-bold tracking-[2px] uppercase text-zinc-500">
+                            Product {pi + 1}
+                          </p>
+                          <button
+                            type="button"
+                            className="text-xs text-zinc-600 hover:text-red-400 font-mono"
+                            title="Remove this product"
+                            onClick={() => {
+                              if (confirm(`Remove "${product.name || `Product ${pi + 1}`}"?`)) {
+                                removeProduct(idx, pi)
+                              }
+                            }}
+                          >
+                            ✕ remove
+                          </button>
+                        </div>
                         <div className="flex flex-col gap-3">
                           <div className="flex gap-3">
                             <div className="flex-1">
