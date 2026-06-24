@@ -197,6 +197,12 @@ export async function extractBrandContentFromText(
   visibleText: string,
   productImageUrls: string[],
 ): Promise<ExtractedBrand> {
+  // Show Claude the candidate image URLs so it can match each product to its image
+  // by URL filename (e.g. .../clarea-1024x1024.jpg ↔ "Clarea"). Pairing by array
+  // index was the previous bug: scrape order and Claude's product order are
+  // independent, so the N-th product would get the N-th image with no semantic link.
+  const imageList = productImageUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')
+
   const response = await client.messages.create({
     model: 'claude-opus-4-7',
     max_tokens: 4096,
@@ -206,6 +212,9 @@ export async function extractBrandContentFromText(
 
 PAGE TEXT (extracted from the live DOM):
 ${visibleText.slice(0, 10000)}
+
+CANDIDATE PRODUCT IMAGE URLs (filenames often contain the product slug):
+${imageList || '(none)'}
 
 Extract the brand and product information and return ONLY a JSON object (no markdown):
 {
@@ -220,7 +229,7 @@ Extract the brand and product information and return ONLY a JSON object (no mark
       "usps": ["USP 1 — detail", "USP 2 — detail", "USP 3 — detail"],
       "why_it_sells": ["Reason 1", "Reason 2", "Reason 3"],
       "annual_volume_btl": 0,
-      "image_url": ""
+      "image_url": "the candidate URL whose filename or path best matches this product's name; empty string if no candidate fits"
     }
   ]
 }
@@ -229,7 +238,8 @@ Rules:
 - id is a lowercase slug
 - usps use " · " separator for sub-points
 - why_it_sells are retailer-facing
-- annual_volume_btl is 0; image_url is ""
+- annual_volume_btl is 0
+- image_url MUST be one of the candidate URLs above (copied verbatim) or "" if none match. Match by comparing the product name to the URL's filename/slug. Do not reuse the same URL for multiple products.
 - Return only the JSON object`,
     }],
   })
@@ -238,9 +248,15 @@ Rules:
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('Claude returned no JSON for brand content')
   const result = JSON.parse(match[0]) as ExtractedBrand
-  result.products.forEach((p, i) => {
-    if (!p.image_url && productImageUrls[i]) p.image_url = productImageUrls[i]
+
+  // Defensive: enforce that any returned image_url is actually from the candidate list.
+  // If Claude hallucinated or used a non-candidate URL, drop it (don't fall back to index
+  // pairing — that was the bug we're fixing).
+  const allowed = new Set(productImageUrls)
+  result.products.forEach(p => {
+    if (p.image_url && !allowed.has(p.image_url)) p.image_url = ''
   })
+
   return result
 }
 

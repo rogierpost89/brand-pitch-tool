@@ -61,28 +61,38 @@ export async function POST(req: NextRequest) {
 
     const brands: BrandSlot[] = await Promise.all(
       deckData.brands.map(async (brand, bi) => {
-        const [logoDataUri, heroDataUri, ...productDataUris] = await Promise.all([
+        const [logoDataUri, heroDataUri] = await Promise.all([
           imageToDataUri(brand.assets.logoUrl).catch(() => ''),
           imageToDataUri(brand.assets.heroImageUrl).catch(() => ''),
-          ...brand.assets.productImageUrls.map(u => imageToDataUri(u).catch(() => '')),
         ])
 
-        const products: ProductSlot[] = brand.products.map((p, idx) => ({
-          id: p.id,
-          name: p.name,
-          intro: applyOverride(translationOverrides, `intro_${bi}_${p.id}`, p.intro),
-          tagline: applyOverride(translationOverrides, `tagline_${bi}_${p.id}`, p.tagline),
-          usps: p.usps.map((u, i) =>
-            applyOverride(translationOverrides, `usp_${i}_${bi}_${p.id}`, u),
-          ),
-          whyItSells: p.why_it_sells.map((w, i) =>
-            applyOverride(translationOverrides, `why_${i}_${bi}_${p.id}`, w),
-          ),
-          annualVolumeBtl: p.annual_volume_btl ?? 0,
-          // Override (uploaded data URI) takes precedence over the scraped image.
-          imageDataUri: p.imageOverrideDataUri || productDataUris[idx] || '',
-          prices: p.prices,
-        }))
+        // Fetch each product's specific image_url (set by Claude during brand analysis
+        // and editable by the user). Pairing by positional index was the prior bug —
+        // scrape order and Claude's product order are independent. Per-product upload
+        // override still takes top precedence.
+        const products: ProductSlot[] = await Promise.all(
+          brand.products.map(async p => {
+            let imageDataUri = p.imageOverrideDataUri || ''
+            if (!imageDataUri && p.image_url) {
+              imageDataUri = await imageToDataUri(p.image_url).catch(() => '')
+            }
+            return {
+              id: p.id,
+              name: p.name,
+              intro: applyOverride(translationOverrides, `intro_${bi}_${p.id}`, p.intro),
+              tagline: applyOverride(translationOverrides, `tagline_${bi}_${p.id}`, p.tagline),
+              usps: p.usps.map((u, i) =>
+                applyOverride(translationOverrides, `usp_${i}_${bi}_${p.id}`, u),
+              ),
+              whyItSells: p.why_it_sells.map((w, i) =>
+                applyOverride(translationOverrides, `why_${i}_${bi}_${p.id}`, w),
+              ),
+              annualVolumeBtl: p.annual_volume_btl ?? 0,
+              imageDataUri,
+              prices: p.prices,
+            }
+          }),
+        )
 
         return {
           name: brand.name,

@@ -106,18 +106,41 @@ const MOCK_PDF_RESULT = {
 }
 
 describe('extractBrandContentFromText', () => {
-  it('returns parsed brand content and fills image_url from productImageUrls by index', async () => {
+  it('keeps image_url when it matches a candidate URL', async () => {
+    const brandWithImage: ExtractedBrand = {
+      ...MOCK_BRAND,
+      products: [{ ...MOCK_BRAND.products[0], image_url: 'https://example.com/product1.png' }],
+    }
     mockCreate.mockResolvedValueOnce({
-      content: [{ type: 'text', text: JSON.stringify(MOCK_BRAND) }],
+      content: [{ type: 'text', text: JSON.stringify(brandWithImage) }],
     })
 
     const result = await extractBrandContentFromText(
       'https://example.com',
-      'Example Brand from Spain. The Example Product is crisp and refreshing.',
+      'Example Brand. The Example Product is crisp.',
       ['https://example.com/product1.png'],
     )
-    expect(result.name).toBe('Example Brand')
     expect(result.products[0].image_url).toBe('https://example.com/product1.png')
+  })
+
+  it('strips image_url when Claude returns a non-candidate URL (no positional fallback)', async () => {
+    // Defensive: prevents the previous bug where N-th product got N-th image regardless
+    // of whether they actually matched. If Claude hallucinates or fails, leave it empty
+    // so the user uses the per-product upload override in Step 3.
+    const brandWithBadImage: ExtractedBrand = {
+      ...MOCK_BRAND,
+      products: [{ ...MOCK_BRAND.products[0], image_url: 'https://example.com/wrong.png' }],
+    }
+    mockCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: JSON.stringify(brandWithBadImage) }],
+    })
+
+    const result = await extractBrandContentFromText(
+      'https://example.com',
+      'Example Brand.',
+      ['https://example.com/product1.png'],
+    )
+    expect(result.products[0].image_url).toBe('')
   })
 })
 
