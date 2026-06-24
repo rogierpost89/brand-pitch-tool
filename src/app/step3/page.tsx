@@ -65,6 +65,7 @@ export default function Step3() {
   const [nlFields, setNlFields] = useState<TranslationMap>({})
   const [userEdits, setUserEdits] = useState<TranslationMap>({})
   const [generating, setGenerating] = useState(false)
+  const [marginMode, setMarginMode] = useState<'excl' | 'incl'>('excl')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -175,7 +176,7 @@ export default function Step3() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        deckData: { buyer: state.buyer, language: state.language, brands },
+        deckData: { buyer: state.buyer, language: state.language, marginMode, brands },
         translationOverrides: overrides,
       }),
     })
@@ -187,12 +188,12 @@ export default function Step3() {
       return
     }
 
-    const html = await res.text()
-    const blob = new Blob([html], { type: 'text/html' })
+    const blob = await res.blob()
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = 'pitch-deck.html'
+    a.download = 'pitch-deck.pptx'
     a.click()
+    URL.revokeObjectURL(a.href)
     setGenerating(false)
   }
 
@@ -312,19 +313,40 @@ export default function Step3() {
 
       {error && <p className="text-red-400 text-xs font-mono mb-4">{error}</p>}
 
-      <div className="flex gap-3 mt-2">
+      <div className="flex gap-3 mt-2 items-center">
         <button
           className="border border-zinc-700 text-zinc-500 text-xs font-bold tracking-[2px] uppercase px-4 py-2"
           onClick={() => router.push('/step2')}
         >
           ← Back
         </button>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-[10px] font-bold tracking-[1.5px] uppercase text-zinc-500">Margin</span>
+          <button
+            type="button"
+            className={`text-xs font-bold tracking-[2px] uppercase px-3 py-2 border ${
+              marginMode === 'excl' ? 'bg-[#f8d418] text-black border-[#f8d418]' : 'border-zinc-700 text-zinc-500'
+            }`}
+            onClick={() => setMarginMode('excl')}
+          >
+            Excl.
+          </button>
+          <button
+            type="button"
+            className={`text-xs font-bold tracking-[2px] uppercase px-3 py-2 border ${
+              marginMode === 'incl' ? 'bg-[#f8d418] text-black border-[#f8d418]' : 'border-zinc-700 text-zinc-500'
+            }`}
+            onClick={() => setMarginMode('incl')}
+          >
+            Incl.
+          </button>
+        </div>
         <button
-          className="bg-[#f8d418] text-black text-xs font-bold tracking-[2px] uppercase px-8 py-2 disabled:opacity-40 ml-auto"
+          className="bg-[#f8d418] text-black text-xs font-bold tracking-[2px] uppercase px-8 py-2 disabled:opacity-40"
           onClick={generate}
           disabled={generating || translating}
         >
-          {generating ? 'Generating…' : 'Generate & Download →'}
+          {generating ? 'Generating…' : 'Generate PPTX →'}
         </button>
       </div>
     </div>

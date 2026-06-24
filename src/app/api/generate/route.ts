@@ -1,34 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { imageToDataUri } from '@/lib/image-embed'
-import { buildDeck } from '@/lib/generate-deck'
-import type { DeckData, DeckBrand, DeckProduct, BrandAssets } from '@/lib/types'
+import { composeDeck } from '@/lib/deck-composer'
+import type {
+  BrandSlot,
+  DeckInput,
+  Language,
+  MarginMode,
+  ProductSlot,
+} from '@/lib/deck-template/types'
+import type { BrandAssets, ExtractedProduct } from '@/lib/types'
 
 const PDC_LOGO_URL =
   'https://pineappledrinks.com/wp-content/uploads/2025/02/Frame-76.png'
 
 export const maxDuration = 60
 
+interface IncomingProduct extends ExtractedProduct {
+  prices: {
+    deliveryPriceExcl: string
+    deliveryPriceIncl: string
+    rsp: string
+    marginExcl: string
+    marginIncl: string
+  }
+}
+
+interface IncomingBrand {
+  name: string
+  intro: string
+  assets: BrandAssets
+  products: IncomingProduct[]
+}
+
 interface GenerateRequest {
-  deckData: Omit<DeckData, 'brands'> & {
-    brands: Array<{
-      name: string
-      intro: string
-      assets: BrandAssets
-      products: Array<Omit<DeckProduct, 'imageDataUri'>>
-    }>
+  deckData: {
+    buyer: { company: string; contact: string }
+    language: Language
+    marginMode?: MarginMode
+    brands: IncomingBrand[]
   }
   translationOverrides?: Record<string, string>
 }
 
+function applyOverride(
+  overrides: Record<string, string>,
+  key: string,
+  fallback: string,
+): string {
+  return overrides[key] ?? fallback
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { deckData, translationOverrides = {} } = await req.json() as GenerateRequest
+    const { deckData, translationOverrides = {} } = (await req.json()) as GenerateRequest
+    const marginMode: MarginMode = deckData.marginMode ?? 'excl'
 
-    // Embed PDC logo
-    const pdcLogoUri = await imageToDataUri(PDC_LOGO_URL)
+    const pdcLogoDataUri = await imageToDataUri(PDC_LOGO_URL)
 
-    // Embed all brand images
-    const embeddedBrands: DeckBrand[] = await Promise.all(
+    const brands: BrandSlot[] = await Promise.all(
       deckData.brands.map(async (brand, bi) => {
         const [logoDataUri, heroDataUri, ...productDataUris] = await Promise.all([
           imageToDataUri(brand.assets.logoUrl).catch(() => ''),
@@ -36,58 +65,53 @@ export async function POST(req: NextRequest) {
           ...brand.assets.productImageUrls.map(u => imageToDataUri(u).catch(() => '')),
         ])
 
-        const products: DeckProduct[] = brand.products.map((p, idx) => {
-          const imageDataUri = productDataUris[idx] || ''
-
-          const applyOverride = (key: string, fallback: string) =>
-            translationOverrides[key] ?? fallback
-
-          return {
-            ...p,
-            imageDataUri,
-            tagline: applyOverride(`tagline_${bi}_${p.id}`, p.tagline),
-            intro: applyOverride(`intro_${bi}_${p.id}`, p.intro),
-            usps: p.usps.map((u, i) =>
-              applyOverride(`usp_${i}_${bi}_${p.id}`, u)
-            ),
-            why_it_sells: p.why_it_sells.map((w, i) =>
-              applyOverride(`why_${i}_${bi}_${p.id}`, w)
-            ),
-          }
-        })
+        const products: ProductSlot[] = brand.products.map((p, idx) => ({
+          id: p.id,
+          name: p.name,
+          intro: applyOverride(translationOverrides, `intro_${bi}_${p.id}`, p.intro),
+          tagline: applyOverride(translationOverrides, `tagline_${bi}_${p.id}`, p.tagline),
+          usps: p.usps.map((u, i) =>
+            applyOverride(translationOverrides, `usp_${i}_${bi}_${p.id}`, u),
+          ),
+          whyItSells: p.why_it_sells.map((w, i) =>
+            applyOverride(translationOverrides, `why_${i}_${bi}_${p.id}`, w),
+          ),
+          annualVolumeBtl: p.annual_volume_btl ?? 0,
+          imageDataUri: productDataUris[idx] || '',
+          prices: p.prices,
+        }))
 
         return {
           name: brand.name,
           intro: brand.intro,
-          assets: {
-            logoDataUri,
-            heroDataUri,
-            productDataUris,
-            description: brand.assets.description,
-          },
+          description: brand.assets.description,
+          images: { logoDataUri, heroDataUri },
           products,
         }
-      })
+      }),
     )
 
-    const finalDeck: DeckData = {
+    const input: DeckInput = {
       buyer: deckData.buyer,
       language: deckData.language,
-      brands: embeddedBrands,
+      marginMode,
+      pdcLogoDataUri,
+      brands,
     }
 
-    const html = buildDeck(finalDeck, pdcLogoUri)
+    const buffer = await composeDeck(input)
 
-    return new NextResponse(html, {
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="pitch-deck.html"',
+        'Content-Type':
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'Content-Disposition': 'attachment; filename="pitch-deck.pptx"',
       },
     })
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
