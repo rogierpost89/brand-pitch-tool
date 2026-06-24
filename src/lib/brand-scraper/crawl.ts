@@ -1,9 +1,36 @@
-import { chromium, type Browser, type Page } from 'playwright'
+import type { Browser, Page } from 'playwright-core'
 import type { RawImage, RawPageData, RawSvg } from './types'
 
 const VIEWPORT = { width: 1440, height: 900 }
 const NAV_TIMEOUT_MS = 30_000
 const SETTLE_TIMEOUT_MS = 5_000
+
+const IS_SERVERLESS = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME
+
+/**
+ * Launch Chromium for the current environment.
+ *  - Serverless (Vercel / Lambda): use playwright-core + @sparticuz/chromium-min, which
+ *    downloads a Linux Chromium tarball at cold-start. Pinned to v149 to match the
+ *    installed @sparticuz/chromium-min version.
+ *  - Local dev: use the regular `playwright` package (full bundle, ships its own
+ *    binary via `npx playwright install`).
+ */
+async function launchBrowser(): Promise<Browser> {
+  if (IS_SERVERLESS) {
+    const sparticuz = (await import('@sparticuz/chromium-min')).default
+    const { chromium } = await import('playwright-core')
+    const executablePath = await sparticuz.executablePath(
+      'https://github.com/Sparticuz/chromium/releases/download/v149.0.0/chromium-v149.0.0-pack.x64.tar',
+    )
+    return chromium.launch({
+      args: sparticuz.args,
+      executablePath,
+      headless: true,
+    })
+  }
+  const { chromium } = await import('playwright')
+  return chromium.launch({ headless: true })
+}
 
 /** Capture raw DOM data from one page. Pure read; never mutates. */
 async function capturePage(page: Page, url: string): Promise<RawPageData> {
@@ -140,7 +167,7 @@ export async function crawl(url: string, opts: { productPageLimit?: number } = {
   const productPageLimit = opts.productPageLimit ?? 4
   let browser: Browser | null = null
   try {
-    browser = await chromium.launch({ headless: true })
+    browser = await launchBrowser()
     const context = await browser.newContext({ viewport: VIEWPORT, userAgent: 'Mozilla/5.0 BrandPitchTool/1.0' })
     // tsx/esbuild emits __name(fn, "label") wrappers when --keep-names is on; that helper
     // doesn't exist in the page context, which breaks every page.evaluate. Polyfill it.

@@ -3,7 +3,14 @@ import { resolve, dirname } from 'node:path'
 import type { BrandScrapeResult } from './types'
 import { urlSlug } from './index'
 
-const CACHE_DIR = resolve(process.cwd(), 'data/brand-cache')
+// On Vercel/Lambda the deployed filesystem is read-only except for /tmp. Writes
+// there are per-instance ephemeral (warm starts hit the cache, cold starts don't).
+// Local dev keeps the cache under data/brand-cache so it survives restarts and
+// can be committed if desired.
+const IS_SERVERLESS = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME
+const CACHE_DIR = IS_SERVERLESS
+  ? '/tmp/brand-cache'
+  : resolve(process.cwd(), 'data/brand-cache')
 
 export function cachePath(url: string): string {
   return resolve(CACHE_DIR, `${urlSlug(url)}.json`)
