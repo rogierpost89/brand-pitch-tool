@@ -5,7 +5,7 @@ export async function translateToNl(fields: TranslationMap): Promise<Translation
   const client = new Anthropic()
 
   const response = await client.messages.create({
-    model: 'claude-opus-4-8',
+    model: 'claude-opus-4-7',
     max_tokens: 4096,
     messages: [{
       role: 'user',

@@ -14,7 +14,7 @@ export async function extractAssetsFromPage(
     .join('\n')
 
   const response = await client.messages.create({
-    model: 'claude-opus-4-8',
+    model: 'claude-opus-4-7',
     max_tokens: 1024,
     messages: [{
       role: 'user',
@@ -56,7 +56,7 @@ export async function extractAssetsFromImage(
   const b64 = screenshotBuffer.toString('base64')
 
   const response = await client.messages.create({
-    model: 'claude-opus-4-8',
+    model: 'claude-opus-4-7',
     max_tokens: 1024,
     messages: [{
       role: 'user',
@@ -96,7 +96,7 @@ export async function extractBrandContentFromImage(
   const b64 = screenshotBuffer.toString('base64')
 
   const response = await client.messages.create({
-    model: 'claude-opus-4-8',
+    model: 'claude-opus-4-7',
     max_tokens: 4096,
     messages: [{
       role: 'user',
@@ -162,7 +162,7 @@ export async function extractFromPdf(
   const b64 = pdfBuffer.toString('base64')
 
   const response = await client.messages.create({
-    model: 'claude-opus-4-8',
+    model: 'claude-opus-4-7',
     max_tokens: 4096,
     messages: [{
       role: 'user',
@@ -238,7 +238,7 @@ export async function extractBrandContent(
   productImageUrls: string[]
 ): Promise<ExtractedBrand> {
   const response = await client.messages.create({
-    model: 'claude-opus-4-8',
+    model: 'claude-opus-4-7',
     max_tokens: 4096,
     messages: [{
       role: 'user',

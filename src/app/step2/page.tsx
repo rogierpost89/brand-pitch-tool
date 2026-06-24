@@ -108,8 +108,11 @@ export default function Step2() {
       {/* Value chain Excel */}
       <div className="border border-zinc-800 p-5 mb-4">
         <div className="text-xs font-bold tracking-[2px] uppercase text-zinc-600 mb-1">Value Chain Excel</div>
+        <p className="text-xs text-zinc-600 font-mono mb-2">
+          Upload a workbook with a sheet named <span className="text-zinc-300">Pricing</span> using the canonical column headers (<span className="text-zinc-300">productId, brandName, deliveryPriceExcl, deliveryPriceIncl, rsp, marginExcl, marginIncl</span>).
+        </p>
         <p className="text-xs text-zinc-600 font-mono mb-4">
-          Download the latest version from SharePoint and upload it here. The tool will scan all tabs automatically.
+          <a href="/value-chain-template.xlsx" download className="underline hover:text-[#f8d418]">Download the template</a> and paste your data from SharePoint into it.
         </p>
         <div className="flex gap-2 items-center">
           <label className="cursor-pointer border border-zinc-600 text-zinc-400 text-xs font-mono px-3 py-2 hover:border-[#f8d418] hover:text-white transition-colors">
