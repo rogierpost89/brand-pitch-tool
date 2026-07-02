@@ -65,6 +65,8 @@ export default function Step3() {
   const [nlFields, setNlFields] = useState<TranslationMap>({})
   const [userEdits, setUserEdits] = useState<TranslationMap>({})
   const [generating, setGenerating] = useState(false)
+  const [previewHtml, setPreviewHtml] = useState<string>('')
+  const [previewing, setPreviewing] = useState(false)
   const [marginMode, setMarginMode] = useState<'excl' | 'incl'>('excl')
   const [productImageOverrides, setProductImageOverrides] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
@@ -163,10 +165,8 @@ export default function Step3() {
   const effectiveNl = useCallback((key: string) =>
     userEdits[key] ?? nlFields[key] ?? enFields[key], [userEdits, nlFields, enFields])
 
-  async function generate() {
-    if (!state) return
-    setGenerating(true)
-    setError(null)
+  function buildPayload() {
+    if (!state) return null
 
     const overrides = state.language === 'nl'
       ? Object.fromEntries(Object.keys(enFields).map(k => [k, effectiveNl(k)]))
@@ -202,29 +202,43 @@ export default function Step3() {
       }
     })
 
-    const res = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        deckData: { buyer: state.buyer, language: state.language, marginMode, brands },
-        translationOverrides: overrides,
-      }),
-    })
-
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error)
-      setGenerating(false)
-      return
+    return {
+      deckData: { buyer: state.buyer, language: state.language, marginMode, brands },
+      translationOverrides: overrides,
     }
+  }
 
-    const blob = await res.blob()
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = 'pitch-deck.pptx'
-    a.click()
-    URL.revokeObjectURL(a.href)
-    setGenerating(false)
+  async function refreshPreview() {
+    setError(''); setPreviewing(true)
+    try {
+      const payload = buildPayload()
+      if (!payload) return
+      const res = await fetch('/api/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) { setError((await res.json()).error); return }
+      setPreviewHtml(await res.text())
+    } finally { setPreviewing(false) }
+  }
+
+  async function publish() {
+    setError(''); setGenerating(true)
+    try {
+      const payload = buildPayload()
+      if (!payload) return
+      const res = await fetch('/api/publish', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) { setError((await res.json()).error); return }
+      const blob = await res.blob()
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'pitch-deck.pdf'
+      a.click()
+      URL.revokeObjectURL(a.href)
+    } finally { setGenerating(false) }
   }
 
   if (!state) return <p className="text-xs text-zinc-500 font-mono">Loading…</p>
@@ -234,11 +248,36 @@ export default function Step3() {
   return (
     <div>
       <h1 className="text-2xl font-black italic uppercase tracking-tight mb-1">
-        Step 3 — Review &amp; Generate
+        Step 3 — Review &amp; Publish
       </h1>
       <p className="text-xs text-zinc-500 font-mono mb-8">
-        Edit any product data below, then generate your deck.
+        Edit product data below, refresh the preview, then publish the PDF.
       </p>
+
+      {/* Deck preview */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-bold tracking-[2px] uppercase text-zinc-600">Deck Preview</span>
+          <button
+            className="text-xs text-zinc-600 hover:text-[#f8d418] font-mono border border-zinc-800 px-3 py-1 disabled:opacity-50"
+            onClick={refreshPreview} disabled={previewing}
+          >
+            {previewing ? 'Rendering…' : '↻ Refresh preview'}
+          </button>
+        </div>
+        {previewHtml ? (
+          <iframe
+            title="Deck preview"
+            srcDoc={previewHtml}
+            className="w-full border border-zinc-800 bg-white"
+            style={{ aspectRatio: '13.333 / 7.5', height: 'auto' }}
+          />
+        ) : (
+          <div className="border border-dashed border-zinc-800 text-zinc-600 text-xs font-mono p-8 text-center">
+            Click &quot;Refresh preview&quot; to render the deck.
+          </div>
+        )}
+      </div>
 
       {/* Editable product/price grid */}
       {editableRows.length > 0 && (
@@ -412,10 +451,10 @@ export default function Step3() {
         </div>
         <button
           className="bg-[#f8d418] text-black text-xs font-bold tracking-[2px] uppercase px-8 py-2 disabled:opacity-40"
-          onClick={generate}
+          onClick={publish}
           disabled={generating || translating}
         >
-          {generating ? 'Generating…' : 'Generate PPTX →'}
+          {generating ? 'Publishing…' : 'Publish PDF →'}
         </button>
       </div>
     </div>
