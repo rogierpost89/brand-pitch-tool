@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Mundial — Pitch Deck Preview</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #111;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.deck-label {
+  align-self: flex-start;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #444;
+  margin-bottom: -8px;
+}
+
+/* All slides 16:9 at 640px wide */
+.slide {
+  width: 640px;
+  height: 360px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+  flex-shrink: 0;
+}
+
+/* ─── SLIDE 1: TITLE ─── */
+.s-title {
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+.s-title .accent-bar { height: 5px; background: #f8d418; width: 100%; }
+.s-title .body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 56px;
+  gap: 40px;
+}
+.s-title .text-block { flex: 1; }
+.s-title .eyebrow {
+  font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  color: #f8d418; margin-bottom: 14px;
+}
+.s-title h1 {
+  font-size: 38px; font-weight: 900; font-style: italic; text-transform: uppercase;
+  color: #fff; line-height: 1.0; letter-spacing: -1px; margin-bottom: 16px;
+}
+.s-title .subtitle {
+  font-size: 10px; color: #666; font-family: 'Courier New', monospace;
+  line-height: 1.7; max-width: 260px;
+}
+.s-title .logo-wrap {
+  width: 120px; display: flex; align-items: center; justify-content: center;
+  border-left: 1px solid #1a1a1a; padding-left: 40px;
+}
+.s-title .logo-wrap img { max-width: 100%; filter: brightness(0) invert(1); }
+.s-title .footer-bar {
+  height: 36px; background: #0a0a0a; border-top: 1px solid #1a1a1a;
+  display: flex; align-items: center; padding: 0 56px;
+  justify-content: space-between;
+}
+.s-title .footer-bar span { font-size: 8px; color: #333; letter-spacing: 1.5px; text-transform: uppercase; }
+.s-title .footer-bar .pdc { color: #f8d418; }
+
+/* ─── SLIDE 2: BRAND INTRO ─── */
+.s-brand {
+  background: #000;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.s-brand .img-half {
+  position: relative; overflow: hidden;
+}
+.s-brand .img-half img {
+  width: 100%; height: 100%; object-fit: cover; opacity: 0.7;
+}
+.s-brand .img-half::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to right, transparent 60%, #000);
+}
+.s-brand .yellow-edge {
+  position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: #f8d418;
+}
+.s-brand .content-half {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 32px 36px 32px 28px;
+}
+.s-brand .tag { font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #f8d418; margin-bottom: 10px; }
+.s-brand h2 { font-size: 22px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.1; margin-bottom: 12px; letter-spacing: -0.5px; }
+.s-brand .body-text { font-size: 9px; color: #888; font-family: 'Courier New', monospace; line-height: 1.7; margin-bottom: 16px; }
+.s-brand .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill {
+  background: #111; border: 1px solid #222; padding: 4px 10px;
+  font-size: 8px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #666;
+}
+.pill.yellow { background: #f8d418; border-color: #f8d418; color: #000; }
+
+/* ─── SLIDE 3: PRODUCT INTRO ─── */
+.s-product {
+  background: #000;
+  display: grid;
+  grid-template-columns: 45% 1fr;
+}
+.s-product .img-panel {
+  position: relative; overflow: hidden; background: #0a0a0a;
+}
+.s-product .img-panel img {
+  width: 100%; height: 100%; object-fit: cover; opacity: 0.85;
+}
+.s-product .img-panel .yellow-strip {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 4px; background: #f8d418;
+}
+.s-product .content-panel {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 28px 32px;
+}
+.s-product .prod-brand { font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #f8d418; margin-bottom: 6px; }
+.s-product h2 { font-size: 28px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.0; letter-spacing: -0.5px; margin-bottom: 10px; }
+.s-product .tagline { font-size: 9px; color: #555; font-style: italic; margin-bottom: 12px; font-family: 'Courier New', monospace; }
+.s-product .desc { font-size: 8.5px; color: #777; font-family: 'Courier New', monospace; line-height: 1.65; margin-bottom: 14px; }
+.s-product .usps { display: flex; flex-direction: column; gap: 5px; }
+.s-product .usp {
+  background: #0d0d0d; border-left: 2px solid #f8d418;
+  padding: 5px 9px; font-size: 8px; color: #bbb; font-family: 'Courier New', monospace; line-height: 1.4;
+}
+
+/* ─── SLIDE 4: PRICING ─── */
+.s-pricing {
+  background: #fff;
+  display: flex; flex-direction: column;
+}
+.s-pricing .top-band {
+  background: #000; padding: 12px 28px; display: flex; align-items: baseline; gap: 14px;
+}
+.s-pricing .top-band .pname { font-size: 14px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; }
+.s-pricing .top-band .bname { font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #f8d418; }
+.s-pricing .body { flex: 1; display: flex; }
+
+.s-pricing .bottle-zone {
+  width: 110px; background: #f6f6f6;
+  display: flex; align-items: center; justify-content: center; padding: 12px 8px;
+}
+.s-pricing .bottle-zone img { max-height: 100%; max-width: 100%; object-fit: contain; }
+
+.s-pricing .numbers { flex: 1; display: flex; flex-direction: column; gap: 7px; padding: 16px 14px; }
+.pcard { border: 1px solid #ebebeb; padding: 9px 12px; }
+.pcard .pl { font-size: 7.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #999; margin-bottom: 2px; }
+.pcard .pv { font-size: 20px; font-weight: 700; color: #000; line-height: 1; }
+.pcard .ps { font-size: 7.5px; color: #bbb; font-family: 'Courier New', monospace; margin-top: 2px; }
+.pcard.hl { background: #f8d418; border-color: #f8d418; }
+.pcard.hl .pl { color: rgba(0,0,0,0.4); }
+.pcard.hl .pv { color: #000; }
+.pcard.hl .ps { color: rgba(0,0,0,0.35); }
+
+.s-pricing .why-col { width: 172px; padding: 16px 16px 16px 6px; display: flex; flex-direction: column; }
+.why-col .wlabel { font-size: 7.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #999; margin-bottom: 10px; }
+.why-row { display: flex; gap: 6px; align-items: flex-start; font-size: 8px; color: #444; font-family: 'Courier New', monospace; line-height: 1.5; margin-bottom: 7px; }
+.ydot { width: 5px; height: 5px; background: #f8d418; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+
+/* ─── SLIDE 5: OVERVIEW ─── */
+.s-overview {
+  background: #000;
+  display: flex; flex-direction: column;
+}
+.s-overview .hero {
+  height: 96px; position: relative; overflow: hidden;
+}
+.s-overview .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; opacity: 0.45; }
+.s-overview .hero .ov-layer {
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.2));
+  display: flex; align-items: center; padding: 0 28px; gap: 16px;
+}
+.ov-layer .ov-title { font-size: 18px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; letter-spacing: -0.5px; }
+.ov-layer .ov-bar { width: 3px; height: 28px; background: #f8d418; }
+.ov-layer .ov-sub { font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #f8d418; line-height: 1.6; }
+.s-overview table { width: calc(100% - 56px); margin: 12px 28px 0; border-collapse: collapse; }
+.s-overview thead th { font-size: 7px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #f8d418; padding: 0 8px 7px; text-align: left; border-bottom: 1px solid #1f1f1f; }
+.s-overview tbody td { padding: 7px 8px; font-size: 8.5px; color: #888; font-family: 'Courier New', monospace; border-bottom: 1px solid #141414; }
+.s-overview .pthumb { width: 24px; height: 24px; object-fit: contain; background: #111; border-radius: 2px; }
+.s-overview .pcell { display: flex; align-items: center; gap: 8px; }
+.s-overview .pname { font-family: 'Gill Sans', sans-serif; font-weight: 700; font-style: italic; text-transform: uppercase; font-size: 9px; color: #fff; }
+.mpill { background: #f8d418; color: #000; font-size: 7.5px; font-weight: 700; padding: 2px 7px; letter-spacing: 0.5px; }
+
+/* Slide number */
+.snum {
+  position: absolute; bottom: 9px; right: 14px;
+  font-size: 8px; color: #333; letter-spacing: 1px;
+}
+.snum-dark { color: #ccc; }
+</style>
+</head>
+<body>
+
+<!-- ─ SLIDE 1: TITLE ─ -->
+<div class="deck-label">Slide 1 — Title</div>
+<div class="slide s-title">
+  <div class="accent-bar"></div>
+  <div class="body">
+    <div class="text-block">
+      <div class="eyebrow">Product Pitch · NL Market · 2026</div>
+      <h1>La Mundial<br>Barcelona</h1>
+      <div class="subtitle">Wine-based aromatised sparkling beverages from the province of Barcelona. Locally grown grapes, rare spices, radically different character.</div>
+    </div>
+    <div class="logo-wrap">
+      <img src="https://lamundialbarcelona.com/wp-content/uploads/2020/11/logo-light.png" alt="La Mundial" />
+    </div>
+  </div>
+  <div class="footer-bar">
+    <span>Presented by <span class="pdc">Pineapple Drinks Club</span></span>
+    <span>Confidential · For trade use only</span>
+  </div>
+</div>
+
+<!-- ─ SLIDE 2: BRAND INTRO ─ -->
+<div class="deck-label">Slide 2 — Brand introduction</div>
+<div class="slide s-brand">
+  <div class="img-half">
+    <img src="https://lamundialbarcelona.com/wp-content/uploads/2025/11/slide-bottle-best-new.jpg" alt="La Mundial" />
+    <div class="yellow-edge"></div>
+  </div>
+  <div class="content-half">
+    <div class="tag">La Mundial Barcelona</div>
+    <h2>Radically<br>Different</h2>
+    <div class="body-text">
+      Produced and bottled in the province of Barcelona using locally grown grapes and top-quality fruit extracts with rare spices. A new category of wine-based aromatised fizz — seriously tempting, slightly effervescent, always smooth and fresh.
+    </div>
+    <div class="pills">
+      <div class="pill yellow">Barcelona Origin</div>
+      <div class="pill">Wine-Based</div>
+      <div class="pill">Natural Spices</div>
+      <div class="pill">No Additives</div>
+    </div>
+  </div>
+  <div class="snum">02 / 07</div>
+</div>
+
+<!-- ─ SLIDE 3: CLAREA INTRO ─ -->
+<div class="deck-label">Slide 3 — Clarea product introduction</div>
+<div class="slide s-product">
+  <div class="img-panel">
+    <img src="https://lamundialbarcelona.com/wp-content/uploads/2025/11/slide-clarea-new.jpg" alt="Clarea" />
+    <div class="yellow-strip"></div>
+  </div>
+  <div class="content-panel">
+    <div class="prod-brand">La Mundial</div>
+    <h2>Clarea</h2>
+    <div class="tagline">"Escape the ordinary, enjoy a frenzy of freshness"</div>
+    <div class="desc">Wine-based sparkling beverage with peach notes, fine bubbles and elegant yellow-golden colour. Crafted from locally grown grapes with exotic spices and lemon vivacity. Serve extra cold with a twist of lemon.</div>
+    <div class="usps">
+      <div class="usp">🍑 &nbsp;Peachy notes · exotic spices · fine bubbles</div>
+      <div class="usp">🌿 &nbsp;Locally grown grapes · Barcelona province</div>
+      <div class="usp">✨ &nbsp;Radically different — new category</div>
+    </div>
+  </div>
+  <div class="snum">03 / 07</div>
+</div>
+
+<!-- ─ SLIDE 4: CLAREA PRICING ─ -->
+<div class="deck-label">Slide 4 — Clarea pricing & margins</div>
+<div class="slide s-pricing">
+  <div class="top-band">
+    <div class="pname">Clarea</div>
+    <div class="bname">La Mundial Barcelona</div>
+  </div>
+  <div class="body">
+    <div class="bottle-zone">
+      <img src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/clarea-bottle-331x1024.png" alt="Clarea bottle" />
+    </div>
+    <div class="numbers">
+      <div class="pcard">
+        <div class="pl">Direct Delivery Price</div>
+        <div class="pv">€5.42</div>
+        <div class="ps">What you pay · incl. excise duty</div>
+      </div>
+      <div class="pcard hl">
+        <div class="pl">Consumer RSP</div>
+        <div class="pv">€8.27</div>
+        <div class="ps">Shelf price · incl. VAT 21%</div>
+      </div>
+      <div class="pcard">
+        <div class="pl">Your Retail Margin</div>
+        <div class="pv">30%</div>
+        <div class="ps">Off-trade standard</div>
+      </div>
+    </div>
+    <div class="why-col">
+      <div class="wlabel">Why it sells</div>
+      <div class="why-row"><div class="ydot"></div>New wine-based fizz category — growing consumer demand for lighter options</div>
+      <div class="why-row"><div class="ydot"></div>Distinct golden colour drives impulse purchase off the shelf</div>
+      <div class="why-row"><div class="ydot"></div>Competitive RSP anchors alongside Cava and Prosecco</div>
+      <div class="why-row"><div class="ydot"></div>Available Q3 2026 · MOQ 1 case</div>
+    </div>
+  </div>
+  <div class="snum snum-dark">04 / 07</div>
+</div>
+
+<!-- ─ SLIDE 5: ROSALEA INTRO ─ -->
+<div class="deck-label">Slide 5 — Rosalea product introduction</div>
+<div class="slide s-product">
+  <div class="img-panel">
+    <img src="https://lamundialbarcelona.com/wp-content/uploads/2025/11/slide-rosalea-new.jpg" alt="Rosalea" />
+    <div class="yellow-strip"></div>
+  </div>
+  <div class="content-panel">
+    <div class="prod-brand">La Mundial</div>
+    <h2>Rosalea</h2>
+    <div class="tagline">"Seriously tempting, slightly effervescent, always fresh"</div>
+    <div class="desc">Artisanal wine-based frizzante with bright deep pink colour and a citrus bouquet. Crafted with fruit extracts and rare spices for a delightful, tasty freshness. Serve extra cold with an orange slice.</div>
+    <div class="usps">
+      <div class="usp">🍊 &nbsp;Citrus bouquet · fruity · slight effervescence</div>
+      <div class="usp">🌹 &nbsp;Striking deep pink — strong on-shelf presence</div>
+      <div class="usp">✨ &nbsp;Artisanal production · Barcelona origin</div>
+    </div>
+  </div>
+  <div class="snum">05 / 07</div>
+</div>
+
+<!-- ─ SLIDE 6: ROSALEA PRICING ─ -->
+<div class="deck-label">Slide 6 — Rosalea pricing & margins</div>
+<div class="slide s-pricing">
+  <div class="top-band">
+    <div class="pname">Rosalea</div>
+    <div class="bname">La Mundial Barcelona</div>
+  </div>
+  <div class="body">
+    <div class="bottle-zone">
+      <img src="https://lamundialbarcelona.com/wp-content/uploads/2021/09/bottle-rosalea-331x1024.png" alt="Rosalea bottle" />
+    </div>
+    <div class="numbers">
+      <div class="pcard">
+        <div class="pl">Direct Delivery Price</div>
+        <div class="pv">€5.42</div>
+        <div class="ps">What you pay · incl. excise duty</div>
+      </div>
+      <div class="pcard hl">
+        <div class="pl">Consumer RSP</div>
+        <div class="pv">€8.27</div>
+        <div class="ps">Shelf price · incl. VAT 21%</div>
+      </div>
+      <div class="pcard">
+        <div class="pl">Your Retail Margin</div>
+        <div class="pv">30%</div>
+        <div class="ps">Off-trade standard</div>
+      </div>
+    </div>
+    <div class="why-col">
+      <div class="wlabel">Why it sells</div>
+      <div class="why-row"><div class="ydot"></div>Deep pink colour creates strong visual standout in rosé and spritz category</div>
+      <div class="why-row"><div class="ydot"></div>Sessionable and food-friendly — broad appeal across shopper missions</div>
+      <div class="why-row"><div class="ydot"></div>Pairs with Aperol Spritz and rosé wine consumers</div>
+      <div class="why-row"><div class="ydot"></div>Available Q3 2026 · MOQ 1 case</div>
+    </div>
+  </div>
+  <div class="snum snum-dark">06 / 07</div>
+</div>
+
+<!-- ─ SLIDE 7: OVERVIEW ─ -->
+<div class="deck-label">Slide 7 — Full product overview</div>
+<div class="slide s-overview">
+  <div class="hero">
+    <img src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/home-white-main.png" alt="La Mundial range" />
+    <div class="ov-layer">
+      <div>
+        <div class="ov-title">Full Range Overview</div>
+      </div>
+      <div class="ov-bar"></div>
+      <div class="ov-sub">La Mundial Barcelona<br>NL Market · 2026</div>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Type</th>
+        <th>Delivery Price</th>
+        <th>Consumer RSP</th>
+        <th>Retail Margin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <div class="pcell">
+            <img class="pthumb" src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/clarea-bottle-331x1024.png" />
+            <span class="pname">Clarea</span>
+          </div>
+        </td>
+        <td>Wine-based sparkling</td>
+        <td>€5.42</td>
+        <td>€8.27</td>
+        <td><span class="mpill">30%</span></td>
+      </tr>
+      <tr>
+        <td>
+          <div class="pcell">
+            <img class="pthumb" src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/clarea-bottle-331x1024.png" />
+            <span class="pname">Clarita</span>
+          </div>
+        </td>
+        <td>Wine-based sparkling</td>
+        <td>€4.85</td>
+        <td>€7.55</td>
+        <td><span class="mpill">30%</span></td>
+      </tr>
+      <tr>
+        <td>
+          <div class="pcell">
+            <img class="pthumb" src="https://lamundialbarcelona.com/wp-content/uploads/2021/09/bottle-rosalea-331x1024.png" />
+            <span class="pname">Rosalea</span>
+          </div>
+        </td>
+        <td>Wine-based frizzante</td>
+        <td>€5.42</td>
+        <td>€8.27</td>
+        <td><span class="mpill">30%</span></td>
+      </tr>
+      <tr>
+        <td>
+          <div class="pcell">
+            <img class="pthumb" src="https://lamundialbarcelona.com/wp-content/uploads/2021/09/bottle-rosalea-331x1024.png" />
+            <span class="pname">Rosalita</span>
+          </div>
+        </td>
+        <td>Wine-based frizzante</td>
+        <td>€4.85</td>
+        <td>€7.55</td>
+        <td><span class="mpill">30%</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="snum">07 / 07</div>
+</div>
+
+</body>
+</html>

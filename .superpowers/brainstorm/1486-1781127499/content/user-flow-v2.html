@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Pitch Tool — UI Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: #000;
+    border-bottom: 1px solid #222;
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .logo span { color: #f8d418; }
+
+  /* Main */
+  .main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  .page-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #f8d418;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Gill Sans', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 40px;
+    letter-spacing: -0.5px;
+  }
+
+  /* Steps */
+  .step {
+    border: 1px solid #222;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .step.active { border-color: #f8d418; }
+  .step.done { border-color: #333; background: #0a0a0a; }
+
+  .step-header {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #0a0a0a;
+  }
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    flex-shrink: 0;
+    letter-spacing: 0;
+  }
+  .step.active .step-num { border-color: #f8d418; color: #f8d418; }
+  .step.done .step-num { background: #f8d418; border-color: #f8d418; color: #000; }
+  .step-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #444;
+  }
+  .step.active .step-label { color: #f8d418; }
+  .step.done .step-label { color: #555; }
+
+  .step-body {
+    padding: 0 24px 24px;
+    background: #000;
+  }
+
+  /* URL input */
+  .input-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .url-input {
+    flex: 1;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 0;
+    outline: none;
+  }
+  .url-input::placeholder { color: #444; }
+  .url-input:focus { border-color: #f8d418; }
+
+  .btn-primary {
+    background: #f8d418;
+    color: #000;
+    font-family: 'Gill Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    border-radius: 0;
+  }
+  .btn-primary:hover { background: #d4b010; }
+  .btn-primary:disabled { background: #2a2a2a; color: #555; cursor: not-allowed; }
+
+  .fallback-link {
+    font-size: 12px;
+    color: #444;
+    margin-top: 10px;
+  }
+  .fallback-link a { color: #f8d418; text-decoration: none; }
+  .fallback-link a:hover { text-decoration: underline; }
+
+  /* Log */
+  .log {
+    margin-top: 16px;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    padding: 14px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .log-done { color: #f8d418; }
+  .log-active { color: #fff; }
+  .log-pending { color: #333; }
+
+  /* Upload row */
+  .upload-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .upload-zone {
+    flex: 1;
+    border: 1px dashed #333;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .upload-zone:hover { border-color: #f8d418; }
+  .upload-zone .uz-icon { font-size: 20px; margin-bottom: 8px; color: #333; }
+  .upload-zone .uz-title { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #555; margin-bottom: 4px; }
+  .upload-zone .uz-sub { font-size: 11px; color: #333; }
+
+  /* Done summary */
+  .done-summary {
+    padding: 16px 24px;
+    font-size: 13px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .done-summary .brand-tokens {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .swatch { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid #333; }
+  .view-link { font-size: 11px; color: #f8d418; text-decoration: none; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* Generate */
+  .generate-btn {
+    width: 100%;
+    background: #f8d418;
+    color: #000;
+    font-family: 'Gill Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 16px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    display: block;
+    text-align: center;
+  }
+  .generate-btn:hover { background: #d4b010; }
+
+  .generate-hint {
+    font-size: 11px;
+    color: #333;
+    text-align: center;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Brand<span>Pitch</span> Tool</div>
+  <div style="font-size:11px;color:#444;letter-spacing:1px;text-transform:uppercase">Personal · rogierpost89@gmail.com</div>
+</div>
+
+<div class="main">
+  <div class="page-title">New Pitch Deck</div>
+  <h1>Generate a pitch deck</h1>
+
+  <!-- Step 1: done -->
+  <div class="step done">
+    <div class="step-header">
+      <div class="step-num">✓</div>
+      <div class="step-label">Brand Analysis</div>
+    </div>
+    <div class="done-summary">
+      <div class="brand-tokens">
+        <span class="swatch" style="background:#000000"></span>
+        <span class="swatch" style="background:#f8d418"></span>
+        <span class="swatch" style="background:#ffffff"></span>
+        <span style="color:#888">Pineapple Drinks Club &nbsp;·&nbsp; Nexa Heavy Italic &nbsp;·&nbsp; Miriam Fixed</span>
+      </div>
+      <a href="#" class="view-link">View analysis ↗</a>
+    </div>
+  </div>
+
+  <!-- Step 2: active -->
+  <div class="step active">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-label">Product Content</div>
+    </div>
+    <div class="step-body">
+      <div class="upload-row">
+        <div class="upload-zone">
+          <div class="uz-icon">📄</div>
+          <div class="uz-title">brand.yaml</div>
+          <div class="uz-sub">Intro text, products, USPs</div>
+        </div>
+        <div class="upload-zone">
+          <div class="uz-icon">📊</div>
+          <div class="uz-title">value-chain.xlsx</div>
+          <div class="uz-sub">Buying price, RSP per product</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: locked -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num" style="opacity:0.3">3</div>
+      <div class="step-label" style="opacity:0.3">Generate</div>
+    </div>
+    <div class="step-body">
+      <button class="generate-btn" disabled>⬇ Generate &amp; Download Pitch Deck</button>
+      <div class="generate-hint">Opens in browser · Print to PDF to share</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Inject helper if present
+if (window.__companionReady) window.__companionReady();
+</script>
+</body>
+</html>

@@ -1,17 +1,16 @@
 /**
- * End-to-end test: Pricing.xlsx -> parseExcel -> composeDeck -> validate PPTX contents.
+ * End-to-end test: Pricing.xlsx -> parseExcel -> renderDeckHtml -> validate HTML contents.
  *
  * Pins the invariants that the rebuild was meant to guarantee:
  *  - The canonical Pricing-sheet parser yields the rows the deck needs.
- *  - The composer produces a valid PPTX with the expected product copy + prices.
+ *  - The HTML renderer produces a valid HTML document with the expected product copy + prices.
  *  - The deck uses ONLY the Pineapple Drinks Club color tokens — no foreign brand
  *    colors leak in, even when fed brand reference colors as inputs.
  */
 import { describe, it, expect } from 'vitest'
 import * as XLSX from 'xlsx'
-import JSZip from 'jszip'
 import { parseExcel, PRICING_SHEET_NAME } from './parse-excel'
-import { composeDeck } from './deck-composer'
+import { renderDeckHtml } from '@/lib/deck-html/render'
 import { colors } from './deck-template/tokens'
 import type { DeckInput } from './deck-template/types'
 
@@ -29,15 +28,8 @@ function buildPricingWorkbook(): Buffer {
   return Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }))
 }
 
-async function extractAllSlideText(buf: Buffer): Promise<string> {
-  const zip = await JSZip.loadAsync(buf)
-  const slideNames = Object.keys(zip.files).filter(n => /^ppt\/slides\/slide\d+\.xml$/.test(n))
-  const parts = await Promise.all(slideNames.map(n => zip.file(n)!.async('string')))
-  return parts.join('\n')
-}
-
-describe('end-to-end Pricing.xlsx -> PPTX', () => {
-  it('parses the canonical workbook and composes a deck containing all product copy + prices', async () => {
+describe('end-to-end Pricing.xlsx -> HTML deck', () => {
+  it('parses the canonical workbook and renders a deck containing all product copy + prices', async () => {
     const xlsxBuf = buildPricingWorkbook()
     const priceRows = parseExcel(xlsxBuf)
     expect(priceRows.map(r => r.productId)).toEqual(['clarea', 'rosso'])
@@ -97,30 +89,33 @@ describe('end-to-end Pricing.xlsx -> PPTX', () => {
       ],
     }
 
-    const buf = await composeDeck(input)
-    const xml = await extractAllSlideText(buf)
+    const html = renderDeckHtml(input)
+
+    // Must be a valid HTML document
+    expect(html.toLowerCase()).toContain('<!doctype html>')
 
     // Product copy + brand names made it into the deck
-    expect(xml).toContain('Clarea')
-    expect(xml).toContain('Rosso')
-    expect(xml).toContain('La Mundial Barcelona')
-    expect(xml).toContain('Roots Divino')
+    expect(html).toContain('Clarea')
+    expect(html).toContain('Rosso')
+    expect(html).toContain('La Mundial Barcelona')
+    expect(html).toContain('Roots Divino')
 
     // Prices made it in (these come from the parsed Pricing sheet)
-    expect(xml).toContain('€17.95')
-    expect(xml).toContain('€19.95')
-    expect(xml).toContain('€7.20')
-    expect(xml).toContain('€8.10')
+    expect(html).toContain('€17.95')
+    expect(html).toContain('€19.95')
+    expect(html).toContain('€7.20')
+    expect(html).toContain('€8.10')
 
     // The chosen margin mode (excl) is what shows up
-    expect(xml).toContain('28%')
-    expect(xml).toContain('30%')
+    expect(html).toContain('28%')
+    expect(html).toContain('30%')
+
+    // Image data URIs are embedded in the HTML
+    expect(html).toContain(PNG)
   })
 
-  it('enforces the single PDC house style — no foreign hex colors in slide XML', async () => {
-    // Whitelist of color tokens that the composer is allowed to emit.
-    // Includes a few hardcoded PowerPoint defaults that pptxgenjs ships
-    // (background of placeholder shapes etc.) and our PDC palette.
+  it('enforces the single PDC house style — no foreign hex colors in slide HTML', async () => {
+    // Whitelist of color tokens that the renderer is allowed to emit.
     const allowedColors = new Set<string>(
       [
         ...Object.values(colors).map(c => c.toUpperCase()),
@@ -145,13 +140,13 @@ describe('end-to-end Pricing.xlsx -> PPTX', () => {
       }],
     }
 
-    const xml = await extractAllSlideText(await composeDeck(input))
+    const html = renderDeckHtml(input)
 
-    // Find every srgbClr/solidFill val="RRGGBB" hex token in the slide XML.
+    // Find every #RRGGBB hex color token in the slide HTML (CSS color values).
     const used = new Set<string>()
-    const re = /val="([0-9A-Fa-f]{6})"/g
+    const re = /#([0-9A-Fa-f]{6})\b/g
     let m: RegExpExecArray | null
-    while ((m = re.exec(xml)) !== null) used.add(m[1].toUpperCase())
+    while ((m = re.exec(html)) !== null) used.add(m[1].toUpperCase())
 
     const foreign = Array.from(used).filter(c => !allowedColors.has(c))
     expect(foreign).toEqual([])

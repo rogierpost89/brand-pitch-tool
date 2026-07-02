@@ -1,0 +1,75 @@
+<h2>What format should the pitch deck output be in?</h2>
+<p class="subtitle">The tool extracts brand tokens — the output format determines how those tokens come alive.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="html" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f0f0f;padding:20px;display:flex;flex-direction:column;gap:8px;min-height:160px">
+      <div style="height:28px;background:#f8d418;border-radius:4px;width:60%;display:flex;align-items:center;padding:0 12px;font-size:12px;font-weight:700;color:#000">BRAND PITCH</div>
+      <div style="height:12px;background:#333;border-radius:3px;width:80%"></div>
+      <div style="height:10px;background:#222;border-radius:3px;width:60%"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <div style="flex:1;height:60px;background:#1a1a1a;border-radius:4px;border:1px solid #333"></div>
+        <div style="flex:1;height:60px;background:#1a1a1a;border-radius:4px;border:1px solid #333"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Self-contained HTML</h3>
+      <p>A single <code>.html</code> file that opens in any browser. Uses the actual extracted colors and font stacks. Keyboard/click navigation between slides. Print-to-PDF anytime.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Pixel-perfect brand fidelity</li><li>No installs, one file</li><li>Print → PDF in one click</li><li>Loads web fonts directly</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Not editable in Keynote/PPT</li><li>Requires browser to present</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="pptx" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1a2e4a;padding:20px;display:flex;flex-direction:column;gap:8px;min-height:160px">
+      <div style="height:20px;background:#fff;border-radius:3px;width:50%"></div>
+      <div style="height:10px;background:#4a7ab5;border-radius:3px;width:70%"></div>
+      <div style="height:10px;background:#2d5a9e;border-radius:3px;width:55%"></div>
+      <div style="display:flex;gap:6px;margin-top:auto">
+        <div style="width:20px;height:20px;background:#c0392b;border-radius:3px;font-size:9px;color:#fff;display:flex;align-items:center;justify-content:center">P</div>
+        <div style="font-size:10px;color:#7fb3d3;line-height:20px">pitch-deck.pptx</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>PowerPoint / Keynote (PPTX)</h3>
+      <p>A <code>.pptx</code> file generated via <code>pptxgenjs</code>. Opens in PowerPoint, Keynote, or Google Slides. Brand colors applied to shapes; system fonts only (no custom web fonts).</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Editable by anyone</li><li>Native presentation apps</li><li>Easy to hand off</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Can't load custom web fonts</li><li>Layout control is limited</li><li>Harder to match brand precisely</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="both" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1a1a2e;padding:20px;display:flex;flex-direction:column;gap:8px;min-height:160px">
+      <div style="display:flex;gap:8px;height:70px">
+        <div style="flex:1;background:#0f0f0f;border-radius:6px;border:1px solid #f8d418;padding:8px">
+          <div style="height:8px;background:#f8d418;border-radius:2px;width:60%;margin-bottom:4px"></div>
+          <div style="height:6px;background:#333;border-radius:2px;width:80%"></div>
+          <div style="font-size:9px;color:#f8d418;margin-top:8px">pitch.html</div>
+        </div>
+        <div style="flex:1;background:#1a2e4a;border-radius:6px;border:1px solid #4a7ab5;padding:8px">
+          <div style="height:8px;background:#fff;border-radius:2px;width:60%;margin-bottom:4px"></div>
+          <div style="height:6px;background:#4a7ab5;border-radius:2px;width:80%"></div>
+          <div style="font-size:9px;color:#7fb3d3;margin-top:8px">pitch.pptx</div>
+        </div>
+      </div>
+      <div style="height:6px;background:#2a2a3e;border-radius:2px;width:90%"></div>
+      <div style="height:6px;background:#2a2a3e;border-radius:2px;width:70%"></div>
+    </div>
+    <div class="card-body">
+      <h3>Both — HTML + PPTX</h3>
+      <p>Generate both outputs from the same brand tokens. HTML is the fidelity reference; PPTX is the editable handoff. Adds complexity but covers all use cases.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Best of both worlds</li><li>HTML for presenting, PPTX to share</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More to build and maintain</li><li>Two outputs to keep in sync</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:24px">My recommendation: <strong>HTML</strong> — it's a personal tool, so brand fidelity matters more than editability. You can always print to PDF to share.</p>

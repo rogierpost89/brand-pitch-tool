@@ -1,0 +1,5 @@
+{"type":"server-started","port":56409,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:56409","screen_dir":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/57052-1781208060/content","state_dir":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/57052-1781208060/state"}
+{"type":"screen-added","file":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/57052-1781208060/content/input-mode.html"}
+{"source":"user-event","type":"click","text":"https://brand-website.com\n        ANALYSE\n      \n      — or —\n      \n        Drop screenshot / PDF / presentation here\n      \n    \n    \n      B — Always both visible\n      URL field at top, drop zone below. Use either or both. No mode switching needed. Best if you often use files without a URL at all.","choice":"both","id":null,"timestamp":1781208217689}
+{"type":"screen-added","file":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/57052-1781208060/content/waiting-1.html"}
+{"type":"server-stopped","reason":"owner process exited"}

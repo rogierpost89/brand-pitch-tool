@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slide Mockup</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #1a1a1a; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif; padding: 32px 24px; }
+
+h2 { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.sub { color: #666; font-size: 13px; margin-bottom: 32px; }
+
+.slide-row { display: flex; gap: 24px; margin-bottom: 40px; flex-wrap: wrap; }
+.slide-label { color: #555; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+
+/* SLIDE */
+.slide {
+  width: 480px;
+  aspect-ratio: 16/9;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+}
+
+/* ─── SLIDE 1: INTRO ─── */
+.s-intro {
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+.s-intro .top-bar {
+  background: #f8d418;
+  height: 6px;
+  width: 100%;
+}
+.s-intro .content {
+  flex: 1;
+  display: flex;
+  padding: 28px 36px;
+  gap: 28px;
+}
+.s-intro .left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.s-intro .brand-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f8d418;
+  margin-bottom: 8px;
+}
+.s-intro h1 {
+  font-size: 26px;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+.s-intro .intro-text {
+  font-size: 9px;
+  color: #888;
+  font-family: 'Courier New', monospace;
+  line-height: 1.6;
+  max-width: 220px;
+}
+.s-intro .right {
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+.usp-item {
+  background: #111;
+  border-left: 2px solid #f8d418;
+  padding: 8px 10px;
+  font-size: 8.5px;
+  color: #ccc;
+  font-family: 'Courier New', monospace;
+  line-height: 1.4;
+}
+.s-intro .slide-num {
+  position: absolute;
+  bottom: 10px;
+  right: 16px;
+  font-size: 9px;
+  color: #333;
+  letter-spacing: 1px;
+}
+.s-intro .logo-mark {
+  position: absolute;
+  bottom: 10px;
+  left: 16px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #333;
+}
+.s-intro .logo-mark span { color: #f8d418; }
+
+/* ─── SLIDE 2: PRICING ─── */
+.s-pricing {
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.s-pricing .header-band {
+  background: #000;
+  padding: 14px 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.s-pricing .header-band .product-name {
+  font-size: 13px;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.s-pricing .header-band .brand-name {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f8d418;
+}
+.s-pricing .body {
+  flex: 1;
+  display: flex;
+  padding: 16px 24px;
+  gap: 16px;
+}
+.s-pricing .price-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.price-card {
+  border: 1px solid #ebebeb;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.price-card .pc-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #999;
+}
+.price-card .pc-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.1;
+}
+.price-card .pc-sub {
+  font-size: 8px;
+  color: #999;
+  font-family: 'Courier New', monospace;
+}
+.price-card.highlight {
+  background: #f8d418;
+  border-color: #f8d418;
+}
+.price-card.highlight .pc-label { color: rgba(0,0,0,0.5); }
+.price-card.highlight .pc-value { color: #000; }
+.price-card.highlight .pc-sub { color: rgba(0,0,0,0.5); }
+
+.s-pricing .usps-col {
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: flex-start;
+  padding-top: 2px;
+}
+.s-pricing .usps-col .col-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 4px;
+}
+.usp-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 8.5px;
+  color: #333;
+  font-family: 'Courier New', monospace;
+  line-height: 1.4;
+}
+.usp-dot { width: 6px; height: 6px; background: #f8d418; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+
+.s-pricing .slide-num {
+  position: absolute;
+  bottom: 8px;
+  right: 16px;
+  font-size: 9px;
+  color: #ccc;
+  letter-spacing: 1px;
+}
+
+/* ─── OVERVIEW SLIDE ─── */
+.s-overview {
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+.s-overview .top-bar { background: #f8d418; height: 4px; }
+.s-overview .ov-header {
+  padding: 16px 24px 10px;
+  font-size: 10px;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  color: #fff;
+  letter-spacing: 1px;
+}
+.s-overview table {
+  width: calc(100% - 48px);
+  margin: 0 24px;
+  border-collapse: collapse;
+  font-size: 9px;
+}
+.s-overview thead tr {
+  background: #111;
+}
+.s-overview thead th {
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #f8d418;
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid #222;
+}
+.s-overview tbody tr { border-bottom: 1px solid #1a1a1a; }
+.s-overview tbody tr:hover { background: #111; }
+.s-overview tbody td {
+  padding: 7px 8px;
+  color: #ccc;
+  font-family: 'Courier New', monospace;
+}
+.s-overview tbody td:first-child { color: #fff; font-family: 'Gill Sans', sans-serif; font-weight: 700; font-style: italic; font-size: 9px; text-transform: uppercase; }
+.s-overview .margin-pill {
+  background: #f8d418;
+  color: #000;
+  font-weight: 700;
+  padding: 2px 6px;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+}
+</style>
+</head>
+<body>
+
+<h2>Pitch Deck — Slide Mockups</h2>
+<p class="sub">3 slide types using PDC brand tokens. Scroll to see all three.</p>
+
+<!-- INTRO SLIDE -->
+<div class="slide-label">Slide type 1 of 3 — Product introduction</div>
+<div class="slide s-intro">
+  <div class="top-bar"></div>
+  <div class="content">
+    <div class="left">
+      <div class="brand-tag">La Mundial</div>
+      <h1>Clarea<br>Natural Wine</h1>
+      <div class="intro-text">
+        A refreshing, lightly sparkling natural wine from Catalunya. Crafted for the modern on-trade and off-trade, with a clean, sessionable profile at 6.8% ABV.
+      </div>
+    </div>
+    <div class="right">
+      <div class="usp-item">🍇 &nbsp;Natural — no additives, no sulphites</div>
+      <div class="usp-item">🌍 &nbsp;Exclusive NL import rights</div>
+      <div class="usp-item">🏆 &nbsp;ISC Gold Medal 2024</div>
+      <div class="usp-item">📦 &nbsp;0.70L · Available in 6-bottle case</div>
+    </div>
+  </div>
+  <div class="logo-mark">Brand<span>Pitch</span></div>
+  <div class="slide-num">01 / 12</div>
+</div>
+
+<br><br>
+
+<!-- PRICING SLIDE -->
+<div class="slide-label">Slide type 2 of 3 — Pricing &amp; margins</div>
+<div class="slide s-pricing">
+  <div class="header-band">
+    <div class="product-name">Clarea Natural Wine</div>
+    <div class="brand-name">La Mundial</div>
+  </div>
+  <div class="body">
+    <div class="price-col">
+      <div class="price-card">
+        <div class="pc-label">Direct Delivery Price</div>
+        <div class="pc-value">€5.42</div>
+        <div class="pc-sub">What you pay · incl. excise</div>
+      </div>
+      <div class="price-card highlight">
+        <div class="pc-label">Consumer RSP</div>
+        <div class="pc-value">€8.27</div>
+        <div class="pc-sub">Shelf price · incl. VAT 21%</div>
+      </div>
+      <div class="price-card">
+        <div class="pc-label">Your Retail Margin</div>
+        <div class="pc-value">30%</div>
+        <div class="pc-sub">Off-trade retail · standard</div>
+      </div>
+    </div>
+    <div class="usps-col">
+      <div class="col-label">Why it sells</div>
+      <div class="usp-row"><div class="usp-dot"></div>Natural wine positioning — growing segment, high margin</div>
+      <div class="usp-row"><div class="usp-dot"></div>Affordable RSP drives volume in competitive shelf sets</div>
+      <div class="usp-row"><div class="usp-dot"></div>Eye-catching label — proven off-shelf pull</div>
+      <div class="usp-row"><div class="usp-dot"></div>Available Q3 2026 · MOQ 1 case</div>
+    </div>
+  </div>
+  <div class="slide-num">02 / 12</div>
+</div>
+
+<br><br>
+
+<!-- OVERVIEW SLIDE -->
+<div class="slide-label">Slide type 3 of 3 — Full product overview</div>
+<div class="slide s-overview">
+  <div class="top-bar"></div>
+  <div class="ov-header">Product Overview — NL Market</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Brand</th>
+        <th>Delivery Price</th>
+        <th>Consumer RSP</th>
+        <th>Retail Margin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Clarea</td>
+        <td style="color:#888;font-family:'Courier New',monospace">La Mundial</td>
+        <td>€5.42</td>
+        <td>€8.27</td>
+        <td><span class="margin-pill">30%</span></td>
+      </tr>
+      <tr>
+        <td>Clarita</td>
+        <td style="color:#888;font-family:'Courier New',monospace">La Mundial</td>
+        <td>€4.85</td>
+        <td>€7.55</td>
+        <td><span class="margin-pill">30%</span></td>
+      </tr>
+      <tr>
+        <td>Rosalea</td>
+        <td style="color:#888;font-family:'Courier New',monospace">La Mundial</td>
+        <td>€5.42</td>
+        <td>€8.27</td>
+        <td><span class="margin-pill">30%</span></td>
+      </tr>
+      <tr>
+        <td>Rosalita</td>
+        <td style="color:#888;font-family:'Courier New',monospace">La Mundial</td>
+        <td>€4.85</td>
+        <td>€7.55</td>
+        <td><span class="margin-pill">30%</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<br>
+<p style="color:#555;font-size:12px;margin-top:8px">These slides use PDC brand tokens. When you load a different brand, all colors and fonts update automatically.</p>
+
+</body>
+</html>

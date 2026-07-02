@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slide Mockup v2 — With Visuals</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #1a1a1a; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif; padding: 32px 24px; }
+h2 { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.sub { color: #666; font-size: 13px; margin-bottom: 32px; }
+.slide-label { color: #555; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+.slide { width: 560px; aspect-ratio: 16/9; position: relative; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 32px rgba(0,0,0,0.7); margin-bottom: 40px; }
+
+/* ─── SLIDE 1: INTRO — full bleed image left, content right ─── */
+.s-intro { background: #000; display: flex; }
+.s-intro .img-panel {
+  width: 44%;
+  position: relative;
+  background: #111;
+  overflow: hidden;
+}
+.s-intro .img-panel img {
+  width: 100%; height: 100%; object-fit: cover; opacity: 0.85;
+}
+.s-intro .img-panel .yellow-bar {
+  position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: #f8d418;
+}
+.s-intro .content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 28px 24px 24px;
+  gap: 10px;
+}
+.s-intro .brand-tag { font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #f8d418; }
+.s-intro h1 { font-size: 24px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.1; letter-spacing: -0.5px; }
+.s-intro .intro-text { font-size: 8.5px; color: #888; font-family: 'Courier New', monospace; line-height: 1.6; }
+.usp-item { background: #111; border-left: 2px solid #f8d418; padding: 5px 8px; font-size: 8px; color: #ccc; font-family: 'Courier New', monospace; line-height: 1.4; }
+.s-intro .usps { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+.s-intro .slide-num { position: absolute; bottom: 8px; right: 14px; font-size: 8px; color: #333; letter-spacing: 1px; }
+
+/* ─── SLIDE 2: PRICING — product bottle shot + data ─── */
+.s-pricing { background: #fff; display: flex; flex-direction: column; }
+.s-pricing .header-band { background: #000; padding: 12px 22px; display: flex; align-items: baseline; gap: 12px; }
+.s-pricing .product-name { font-size: 13px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; letter-spacing: 0.5px; }
+.s-pricing .brand-name { font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #f8d418; }
+.s-pricing .body { flex: 1; display: flex; }
+.s-pricing .bottle-col {
+  width: 100px;
+  background: #f6f6f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.s-pricing .bottle-col img { max-height: 100%; max-width: 100%; object-fit: contain; }
+.bottle-placeholder {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; color: #bbb;
+}
+.bottle-placeholder .bp-icon { font-size: 28px; }
+.bottle-placeholder .bp-label { font-size: 8px; letter-spacing: 1px; text-transform: uppercase; color: #ccc; }
+.s-pricing .price-col { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 14px 14px; }
+.price-card { border: 1px solid #ebebeb; padding: 8px 10px; }
+.price-card .pc-label { font-size: 7.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #999; }
+.price-card .pc-value { font-size: 17px; font-weight: 700; color: #000; line-height: 1.1; }
+.price-card .pc-sub { font-size: 7.5px; color: #999; font-family: 'Courier New', monospace; }
+.price-card.highlight { background: #f8d418; border-color: #f8d418; }
+.price-card.highlight .pc-label { color: rgba(0,0,0,0.45); }
+.price-card.highlight .pc-value { color: #000; }
+.price-card.highlight .pc-sub { color: rgba(0,0,0,0.45); }
+.s-pricing .usps-col { width: 150px; padding: 14px 14px 14px 4px; display: flex; flex-direction: column; gap: 5px; }
+.col-label { font-size: 7.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #999; margin-bottom: 4px; }
+.usp-row { display: flex; align-items: flex-start; gap: 5px; font-size: 8px; color: #333; font-family: 'Courier New', monospace; line-height: 1.4; }
+.usp-dot { width: 5px; height: 5px; background: #f8d418; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+.s-pricing .slide-num { position: absolute; bottom: 8px; right: 14px; font-size: 8px; color: #ccc; }
+
+/* ─── SLIDE 3: OVERVIEW — hero visual band + table ─── */
+.s-overview { background: #000; display: flex; flex-direction: column; }
+.s-overview .hero-band {
+  height: 90px;
+  position: relative;
+  overflow: hidden;
+  background: #111;
+}
+.s-overview .hero-band img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+.s-overview .hero-band .overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.1));
+  display: flex; align-items: center; padding: 0 24px; gap: 16px;
+}
+.s-overview .hero-band .ov-title { font-size: 16px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; letter-spacing: -0.5px; }
+.s-overview .hero-band .yellow-line { width: 3px; height: 32px; background: #f8d418; flex-shrink: 0; }
+.s-overview .hero-band .ov-sub { font-size: 8px; color: #f8d418; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+.s-overview table { width: calc(100% - 48px); margin: 0 24px; border-collapse: collapse; font-size: 8.5px; }
+.s-overview thead tr { background: #111; }
+.s-overview thead th { font-size: 7px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #f8d418; padding: 6px 8px; text-align: left; border-bottom: 1px solid #222; }
+.s-overview tbody tr { border-bottom: 1px solid #1a1a1a; }
+.s-overview tbody td { padding: 6px 8px; color: #ccc; font-family: 'Courier New', monospace; }
+.s-overview .prod-cell { display: flex; align-items: center; gap: 8px; }
+.s-overview .thumb { width: 22px; height: 22px; border-radius: 2px; object-fit: cover; background: #222; flex-shrink: 0; }
+.s-overview .prod-name { color: #fff; font-family: 'Gill Sans', sans-serif; font-weight: 700; font-style: italic; text-transform: uppercase; font-size: 8.5px; }
+.margin-pill { background: #f8d418; color: #000; font-weight: 700; padding: 2px 6px; font-size: 7.5px; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+
+<h2>Slides v2 — With Brand Photography</h2>
+<p class="sub">Product images pulled from the brand website or supplied in brand.yaml. Placeholders shown where no image is loaded.</p>
+
+<!-- INTRO SLIDE -->
+<div class="slide-label">Slide 1 — Product introduction (full-bleed image left)</div>
+<div class="slide s-intro">
+  <div class="img-panel">
+    <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&q=80&fit=crop" alt="wine bottles" />
+    <div class="yellow-bar"></div>
+  </div>
+  <div class="content">
+    <div class="brand-tag">La Mundial</div>
+    <h1>Clarea<br>Natural Wine</h1>
+    <div class="intro-text">A refreshing natural wine from Catalunya. Clean, sessionable, 6.8% ABV. Built for modern off-trade shelves and on-trade lists.</div>
+    <div class="usps">
+      <div class="usp-item">🍇 &nbsp;Natural — no additives, no sulphites</div>
+      <div class="usp-item">🌍 &nbsp;Exclusive NL import rights</div>
+      <div class="usp-item">🏆 &nbsp;ISC Gold Medal 2024</div>
+    </div>
+  </div>
+  <div class="slide-num">02 / 10</div>
+</div>
+
+<!-- PRICING SLIDE -->
+<div class="slide-label">Slide 2 — Pricing & margins (bottle shot + numbers)</div>
+<div class="slide s-pricing">
+  <div class="header-band">
+    <div class="product-name">Clarea Natural Wine</div>
+    <div class="brand-name">La Mundial</div>
+  </div>
+  <div class="body">
+    <div class="bottle-col">
+      <img src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=200&q=80&fit=crop" alt="bottle" />
+    </div>
+    <div class="price-col">
+      <div class="price-card">
+        <div class="pc-label">Direct Delivery Price</div>
+        <div class="pc-value">€5.42</div>
+        <div class="pc-sub">What you pay · incl. excise</div>
+      </div>
+      <div class="price-card highlight">
+        <div class="pc-label">Consumer RSP</div>
+        <div class="pc-value">€8.27</div>
+        <div class="pc-sub">Shelf price · incl. VAT 21%</div>
+      </div>
+      <div class="price-card">
+        <div class="pc-label">Your Retail Margin</div>
+        <div class="pc-value">30%</div>
+        <div class="pc-sub">Off-trade standard</div>
+      </div>
+    </div>
+    <div class="usps-col">
+      <div class="col-label">Why it sells</div>
+      <div class="usp-row"><div class="usp-dot"></div>Natural wine — fastest growing segment</div>
+      <div class="usp-row"><div class="usp-dot"></div>Competitive RSP drives shelf velocity</div>
+      <div class="usp-row"><div class="usp-dot"></div>Award-winning, eye-catching label</div>
+      <div class="usp-row"><div class="usp-dot"></div>Available Q3 2026 · MOQ 1 case</div>
+    </div>
+  </div>
+  <div class="slide-num">03 / 10</div>
+</div>
+
+<!-- OVERVIEW SLIDE -->
+<div class="slide-label">Slide 3 — Overview (hero image band + product thumbnails in table)</div>
+<div class="slide s-overview">
+  <div class="hero-band">
+    <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80&fit=crop" alt="brand visual" />
+    <div class="overlay">
+      <div>
+        <div class="ov-title">Product Overview</div>
+        <div class="ov-sub">NL Market · 2026</div>
+      </div>
+      <div class="yellow-line"></div>
+      <div class="ov-sub" style="max-width:160px;line-height:1.6">Pineapple Drinks Club<br>Exclusive Imports</div>
+    </div>
+  </div>
+  <table style="margin-top: 10px;">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Brand</th>
+        <th>Delivery Price</th>
+        <th>Consumer RSP</th>
+        <th>Retail Margin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><div class="prod-cell"><img class="thumb" src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=60&q=60&fit=crop" /><span class="prod-name">Clarea</span></div></td>
+        <td>La Mundial</td><td>€5.42</td><td>€8.27</td><td><span class="margin-pill">30%</span></td>
+      </tr>
+      <tr>
+        <td><div class="prod-cell"><img class="thumb" src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=60&q=60&fit=crop" /><span class="prod-name">Clarita</span></div></td>
+        <td>La Mundial</td><td>€4.85</td><td>€7.55</td><td><span class="margin-pill">30%</span></td>
+      </tr>
+      <tr>
+        <td><div class="prod-cell"><img class="thumb" src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=60&q=60&fit=crop" /><span class="prod-name">Rosalea</span></div></td>
+        <td>La Mundial</td><td>€5.42</td><td>€8.27</td><td><span class="margin-pill">30%</span></td>
+      </tr>
+      <tr>
+        <td><div class="prod-cell"><img class="thumb" src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=60&q=60&fit=crop" /><span class="prod-name">Rosalita</span></div></td>
+        <td>La Mundial</td><td>€4.85</td><td>€7.55</td><td><span class="margin-pill">30%</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p style="color:#555;font-size:12px;margin-top:16px">Stock photos shown above — real product photos would come from brand.yaml image URLs or scraped from the brand site.</p>
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+{"type":"server-started","port":60902,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:60902","screen_dir":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/17371-1781176544/content","state_dir":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/17371-1781176544/state"}
+{"type":"screen-added","file":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/17371-1781176544/content/title-v7.html"}
+{"type":"screen-added","file":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/17371-1781176544/content/deck-v2.html"}
+{"type":"screen-added","file":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/17371-1781176544/content/deck-v3.html"}
+{"type":"screen-added","file":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/17371-1781176544/content/deck-v4.html"}
+{"type":"screen-added","file":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/17371-1781176544/content/translation-review.html"}
+{"type":"screen-added","file":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/17371-1781176544/content/roots-test.html"}
+{"type":"screen-updated","file":"/Users/newnew/Developer/brand-pitch-tool/.superpowers/brainstorm/17371-1781176544/content/roots-test.html"}
+{"type":"server-stopped","reason":"idle timeout"}

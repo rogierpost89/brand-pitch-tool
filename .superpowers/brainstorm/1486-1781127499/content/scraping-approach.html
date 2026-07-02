@@ -1,0 +1,66 @@
+<h2>How should the tool extract brand tokens from a URL?</h2>
+<p class="subtitle">This is the core of the tool — everything else is templating. The approach determines output quality.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="css" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d1117;padding:16px;font-family:monospace;font-size:11px;color:#58a6ff;min-height:130px;line-height:1.6">
+      <div style="color:#8b949e">// fetch → parse CSS</div>
+      <div>GET pineapple.com/style.css</div>
+      <div style="color:#f0883e">→ extract <span style="color:#7ee787">--color-primary</span></div>
+      <div style="color:#f0883e">→ extract <span style="color:#7ee787">font-family</span></div>
+      <div style="color:#f0883e">→ extract <span style="color:#7ee787">border-radius</span></div>
+      <div style="color:#8b949e;margin-top:8px">// no browser needed</div>
+    </div>
+    <div class="card-body">
+      <h3>CSS Parser</h3>
+      <p>Fetch the page's HTML and stylesheets, extract CSS custom properties and computed values. Fast, cheap, no AI needed.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Instant, no API cost</li><li>Works offline</li><li>Fully deterministic</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Misses JS-rendered styles</li><li>Raw tokens, no narrative</li><li>Can't match pineapple example quality</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="ai" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d1117;padding:16px;font-family:monospace;font-size:11px;min-height:130px;line-height:1.6">
+      <div style="color:#8b949e">// screenshot → Claude Vision</div>
+      <div style="color:#ff7b72">fetch</div><div style="color:#fff">(url) → screenshot</div>
+      <div style="color:#ff7b72">claude</div><div style="color:#fff">.analyze(screenshot, </div>
+      <div style="color:#a5d6ff">  "extract brand tokens,</div>
+      <div style="color:#a5d6ff">   colors, fonts, spacing"</div>
+      <div style="color:#fff">)</div>
+      <div style="color:#7ee787;margin-top:6px">→ design-analysis.yaml</div>
+    </div>
+    <div class="card-body">
+      <h3>AI Vision (Claude) — Recommended</h3>
+      <p>Take a screenshot of the page, send it to Claude with the pineapple example as the quality template. Gets computed styles, understands visual hierarchy, writes the narrative. Natural screenshot fallback if URL fails.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Matches pineapple example quality</li><li>Handles JS-rendered sites</li><li>Screenshot fallback is the same flow</li><li>Writes the narrative too</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Uses Claude API credits</li><li>Needs Playwright on Vercel</li><li>Slightly slower (~10–20s)</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="hybrid" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d1117;padding:16px;font-family:monospace;font-size:11px;min-height:130px;line-height:1.6;color:#fff">
+      <div style="color:#8b949e">// CSS first, AI enrichment</div>
+      <div><span style="color:#7ee787">tokens</span> = parseCss(url)</div>
+      <div><span style="color:#7ee787">analysis</span> = claude.enrich(</div>
+      <div style="color:#a5d6ff">  tokens, screenshot</div>
+      <div>)</div>
+      <div style="color:#7ee787;margin-top:6px">→ grounded + narrated</div>
+    </div>
+    <div class="card-body">
+      <h3>Hybrid — CSS + AI enrichment</h3>
+      <p>Parse CSS for raw token values first (fast, grounded), then pass those + a screenshot to Claude for semantic labeling and narrative writing. Most accurate and most complex.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Grounded in actual CSS values</li><li>AI fills gaps and writes narrative</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Most complex to build</li><li>Still needs Playwright</li><li>Marginal quality gain for the effort</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:24px">My recommendation: <strong>AI Vision</strong> — the pineapple example is clearly not just CSS extraction; it's interpreted analysis. Claude Vision is the only way to get that quality automatically, and the screenshot fallback becomes free.</p>

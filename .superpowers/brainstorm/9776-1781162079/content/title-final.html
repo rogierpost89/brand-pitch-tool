@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Title Slide — Final</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #111; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif; padding: 48px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+.label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #444; }
+
+.slide {
+  width: 640px; height: 360px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+  display: grid;
+  grid-template-columns: 48% 1fr;
+  background: #000;
+}
+
+/* LEFT: type panel */
+.left {
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 32px 36px 0 36px;
+  position: relative; z-index: 2;
+}
+.left::after {
+  content: ''; position: absolute;
+  top: 16%; bottom: 16%; right: 0; width: 4px; background: #f8d418;
+}
+.top { display: flex; flex-direction: column; gap: 0; }
+.eyebrow {
+  font-size: 8.5px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  color: #f8d418; margin-bottom: 12px;
+}
+h1 {
+  font-size: 40px; font-weight: 900; font-style: italic; text-transform: uppercase;
+  color: #fff; line-height: 0.95; letter-spacing: -1px; margin-bottom: 14px;
+}
+.subtitle {
+  font-size: 9px; color: #777; font-family: 'Courier New', monospace;
+  line-height: 1.7; max-width: 210px;
+}
+
+/* PDC logo + label at the bottom of left panel */
+.pdc-block {
+  display: flex; flex-direction: column; gap: 5px;
+  padding-bottom: 0;
+}
+.presented-by {
+  font-size: 7.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: #444;
+}
+.pdc-logo { height: 36px; width: auto; object-fit: contain; object-position: left; }
+
+/* Yellow footer strip across full width */
+.footer-strip {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 34px; background: #f8d418; z-index: 3;
+  display: flex; align-items: center; padding: 0 36px;
+  justify-content: space-between;
+}
+.footer-strip span {
+  font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #000;
+}
+
+/* RIGHT: full-bleed image */
+.right { position: relative; overflow: hidden; }
+.right img.hero {
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
+}
+.right .fade {
+  position: absolute; inset: 0;
+  background: linear-gradient(to left, transparent 55%, rgba(0,0,0,0.55));
+}
+
+/* Yellow accent bar top */
+.accent-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 5px;
+  background: #f8d418; z-index: 4;
+}
+</style>
+</head>
+<body>
+
+<div class="label">Title Slide — Layout B · Hero A · PDC Logo</div>
+
+<div class="slide">
+  <div class="accent-bar"></div>
+
+  <div class="left">
+    <div class="top">
+      <div class="eyebrow" data-en="Product Pitch · NL Market · 2026" data-nl="Productpresentatie · NL Markt · 2026">Product Pitch · NL Market · 2026</div>
+      <h1>La Mundial<br>Barcelona</h1>
+      <div class="subtitle" data-en="Wine-based aromatised sparkling beverages from the province of Barcelona. Locally grown grapes, rare spices, radically different." data-nl="Op wijn gebaseerde gearomatiseerde bruisende dranken uit de provincie Barcelona. Lokale druiven, zeldzame specerijen, radicaal anders.">Wine-based aromatised sparkling beverages from the province of Barcelona. Locally grown grapes, rare spices, radically different.</div>
+    </div>
+    <div class="pdc-block">
+      <div class="presented-by">Presented by</div>
+      <img class="pdc-logo" src="https://pineappledrinks.com/wp-content/uploads/2025/02/Frame-76.png" alt="Pineapple Drinks Club" />
+    </div>
+  </div>
+
+  <div class="right">
+    <img class="hero" src="https://lamundialbarcelona.com/wp-content/uploads/2025/11/slide-bottle-best-new.jpg" alt="La Mundial" />
+    <div class="fade"></div>
+  </div>
+
+  <div class="footer-strip">
+    <span data-en="Confidential · For trade use only" data-nl="Vertrouwelijk · Alleen voor handelsdoeleinden">Confidential · For trade use only</span>
+    <span>01 / 07</span>
+  </div>
+</div>
+
+<p style="color:#555;font-size:11px;margin-top:8px">PDC logo fetched live from pineappledrinks.com · La Mundial hero image from lamundialbarcelona.com</p>
+
+</body>
+</html>

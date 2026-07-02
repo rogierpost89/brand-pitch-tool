@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Title Slide — Hero Options</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #111; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+
+.label { align-self: flex-start; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #444; margin-bottom: -12px; }
+.slide { width: 640px; height: 360px; position: relative; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.8); flex-shrink: 0; cursor: pointer; }
+.slide:hover { box-shadow: 0 8px 40px rgba(248,212,24,0.25); }
+
+/* ── OPTION A: Full-bleed hero, dark scrim + type left ── */
+.s-a { background: #000; }
+.s-a .hero-img { position: absolute; inset: 0; }
+.s-a .hero-img img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.s-a .scrim { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.88) 45%, rgba(0,0,0,0.15)); }
+.s-a .accent-bar { position: absolute; top: 0; left: 0; right: 0; height: 5px; background: #f8d418; }
+.s-a .content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 32px 48px; }
+.s-a .eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #f8d418; margin-bottom: 12px; }
+.s-a h1 { font-size: 42px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.0; letter-spacing: -1px; margin-bottom: 14px; text-shadow: 0 2px 12px rgba(0,0,0,0.5); }
+.s-a .subtitle { font-size: 10px; color: rgba(255,255,255,0.6); font-family: 'Courier New', monospace; line-height: 1.7; max-width: 240px; }
+.s-a .footer { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; padding: 0 48px; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); }
+.s-a .footer span { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+.s-a .footer .pdc { color: #f8d418; }
+.s-a .logo { position: absolute; bottom: 52px; right: 40px; width: 90px; filter: brightness(0) invert(1); opacity: 0.9; }
+
+/* ── OPTION B: Split — image right, styled type left ── */
+.s-b { background: #000; display: grid; grid-template-columns: 48% 1fr; }
+.s-b .left { display: flex; flex-direction: column; justify-content: center; padding: 32px 36px; position: relative; }
+.s-b .left::after { content: ''; position: absolute; top: 20%; bottom: 20%; right: 0; width: 3px; background: #f8d418; }
+.s-b .eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #f8d418; margin-bottom: 12px; }
+.s-b h1 { font-size: 36px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.0; letter-spacing: -1px; margin-bottom: 14px; }
+.s-b .subtitle { font-size: 9px; color: #666; font-family: 'Courier New', monospace; line-height: 1.7; margin-bottom: 20px; }
+.s-b .logo { width: 80px; filter: brightness(0) invert(1); opacity: 0.7; }
+.s-b .footer { position: absolute; bottom: 0; left: 0; right: 48%; height: 36px; background: #f8d418; display: flex; align-items: center; padding: 0 36px; }
+.s-b .footer span { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #000; }
+.s-b .right { position: relative; overflow: hidden; }
+.s-b .right img { width: 100%; height: 100%; object-fit: cover; }
+.s-b .right .overlay { position: absolute; inset: 0; background: linear-gradient(to left, transparent 60%, rgba(0,0,0,0.4)); }
+
+/* ── OPTION C: Full-bleed, yellow overlay strip + two images ── */
+.s-c { background: #000; }
+.s-c .bg-img { position: absolute; inset: 0; }
+.s-c .bg-img img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; opacity: 0.55; }
+.s-c .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+.s-c .yellow-band { position: absolute; left: 0; top: 0; bottom: 0; width: 7px; background: #f8d418; }
+.s-c .accent-bar { position: absolute; top: 0; left: 0; right: 0; height: 5px; background: #f8d418; }
+.s-c .content { position: absolute; inset: 0; display: flex; align-items: flex-end; padding: 0 48px 44px; gap: 32px; }
+.s-c .text { flex: 1; }
+.s-c .eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #f8d418; margin-bottom: 8px; }
+.s-c h1 { font-size: 44px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 0.95; letter-spacing: -1.5px; text-shadow: 0 2px 20px rgba(0,0,0,0.6); }
+.s-c .bottles { display: flex; gap: 12px; align-items: flex-end; }
+.s-c .bottle-thumb { width: 52px; height: 120px; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
+.s-c .footer { position: absolute; bottom: 0; left: 0; right: 0; height: 36px; background: rgba(248,212,24,0.92); display: flex; align-items: center; padding: 0 48px; justify-content: space-between; }
+.s-c .footer span { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #000; }
+</style>
+</head>
+<body>
+
+<p style="color:#555;font-size:12px;align-self:flex-start;max-width:640px">Three directions for a more impactful title slide. All use real La Mundial photography. Click to select your favourite.</p>
+
+<!-- OPTION A -->
+<div class="label">Option A — Full-bleed hero, dark scrim, type left</div>
+<div class="slide s-a" data-choice="a" onclick="pick(this)">
+  <div class="hero-img">
+    <img src="https://lamundialbarcelona.com/wp-content/uploads/2025/11/slide-bottle-best-new.jpg" alt="" />
+  </div>
+  <div class="scrim"></div>
+  <div class="accent-bar"></div>
+  <div class="content">
+    <div class="eyebrow">Product Pitch · NL Market · 2026</div>
+    <h1>La Mundial<br>Barcelona</h1>
+    <div class="subtitle">Wine-based aromatised sparkling beverages. Locally grown grapes, rare spices, radically different character.</div>
+  </div>
+  <img class="logo" src="https://lamundialbarcelona.com/wp-content/uploads/2020/11/logo-light.png" alt="La Mundial" />
+  <div class="footer">
+    <span>Presented by <span class="pdc">Pineapple Drinks Club</span></span>
+    <span>Confidential · Trade use only</span>
+  </div>
+</div>
+
+<!-- OPTION B -->
+<div class="label">Option B — Split layout: bold type left, full image right</div>
+<div class="slide s-b" data-choice="b" onclick="pick(this)">
+  <div class="left">
+    <div class="eyebrow">Product Pitch · NL Market · 2026</div>
+    <h1>La Mundial<br>Barcelona</h1>
+    <div class="subtitle">Wine-based aromatised sparkling beverages from Barcelona. Radically different.</div>
+    <img class="logo" src="https://lamundialbarcelona.com/wp-content/uploads/2020/11/logo-light.png" alt="La Mundial" />
+    <div class="footer"><span>Pineapple Drinks Club</span></div>
+  </div>
+  <div class="right">
+    <img src="https://lamundialbarcelona.com/wp-content/uploads/2025/11/slide-clarea-new.jpg" alt="" />
+    <div class="overlay"></div>
+  </div>
+</div>
+
+<!-- OPTION C -->
+<div class="label">Option C — Full-bleed image, headline + bottle shots foreground</div>
+<div class="slide s-c" data-choice="c" onclick="pick(this)">
+  <div class="bg-img">
+    <img src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/home-white-main.png" alt="" />
+  </div>
+  <div class="scrim"></div>
+  <div class="accent-bar"></div>
+  <div class="content">
+    <div class="text">
+      <div class="eyebrow">Product Pitch · NL Market · 2026</div>
+      <h1>La<br>Mundial</h1>
+    </div>
+    <div class="bottles">
+      <img class="bottle-thumb" src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/clarea-bottle-331x1024.png" alt="Clarea" />
+      <img class="bottle-thumb" src="https://lamundialbarcelona.com/wp-content/uploads/2021/09/bottle-rosalea-331x1024.png" alt="Rosalea" />
+    </div>
+  </div>
+  <div class="footer">
+    <span>Presented by Pineapple Drinks Club</span>
+    <span>NL Market · 2026 · Confidential</span>
+  </div>
+</div>
+
+<script>
+function pick(el) {
+  document.querySelectorAll('.slide').forEach(s => s.style.outline = 'none');
+  el.style.outline = '3px solid #f8d418';
+  if (window.__sendEvent) window.__sendEvent({ type: 'click', choice: el.dataset.choice, text: el.dataset.choice });
+}
+</script>
+</body>
+</html>

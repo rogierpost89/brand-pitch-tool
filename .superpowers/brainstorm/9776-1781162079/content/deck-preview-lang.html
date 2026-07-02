@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Mundial — Pitch Deck with EN/NL toggle</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #111;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ── LANG TOGGLE ── */
+.lang-bar {
+  width: 640px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lang-bar .lb-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #444;
+}
+.lang-toggle {
+  display: flex;
+  background: #000;
+  border: 1px solid #222;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.lang-btn {
+  padding: 7px 18px;
+  font-family: 'Gill Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #444;
+  transition: background 0.15s, color 0.15s;
+}
+.lang-btn.active {
+  background: #f8d418;
+  color: #000;
+}
+.lang-btn:hover:not(.active) { color: #fff; }
+
+/* ── Translatable elements ── */
+[data-en], [data-nl] { transition: opacity 0.15s; }
+
+.deck-label {
+  align-self: flex-start;
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #444;
+  margin-bottom: -8px;
+}
+
+.slide {
+  width: 640px; height: 360px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+  flex-shrink: 0;
+}
+
+/* ── TITLE SLIDE ── */
+.s-title { background: #000; display: flex; flex-direction: column; }
+.s-title .accent-bar { height: 5px; background: #f8d418; }
+.s-title .body { flex: 1; display: flex; align-items: center; padding: 0 56px; gap: 40px; }
+.s-title .text-block { flex: 1; }
+.s-title .eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #f8d418; margin-bottom: 14px; }
+.s-title h1 { font-size: 38px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.0; letter-spacing: -1px; margin-bottom: 16px; }
+.s-title .subtitle { font-size: 10px; color: #666; font-family: 'Courier New', monospace; line-height: 1.7; max-width: 260px; }
+.s-title .logo-wrap { width: 120px; display: flex; align-items: center; justify-content: center; border-left: 1px solid #1a1a1a; padding-left: 40px; }
+.s-title .logo-wrap img { max-width: 100%; filter: brightness(0) invert(1); }
+.s-title .footer-bar { height: 36px; background: #0a0a0a; border-top: 1px solid #1a1a1a; display: flex; align-items: center; padding: 0 56px; justify-content: space-between; }
+.s-title .footer-bar span { font-size: 8px; color: #333; letter-spacing: 1.5px; text-transform: uppercase; }
+.s-title .footer-bar .pdc { color: #f8d418; }
+
+/* ── PRODUCT SLIDE ── */
+.s-product { background: #000; display: grid; grid-template-columns: 45% 1fr; }
+.s-product .img-panel { position: relative; overflow: hidden; background: #0a0a0a; }
+.s-product .img-panel img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
+.s-product .img-panel .yellow-strip { position: absolute; top: 0; right: 0; bottom: 0; width: 4px; background: #f8d418; }
+.s-product .content-panel { display: flex; flex-direction: column; justify-content: center; padding: 28px 32px; }
+.s-product .prod-brand { font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #f8d418; margin-bottom: 6px; }
+.s-product h2 { font-size: 28px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.0; letter-spacing: -0.5px; margin-bottom: 10px; }
+.s-product .tagline { font-size: 9px; color: #555; font-style: italic; margin-bottom: 12px; font-family: 'Courier New', monospace; }
+.s-product .desc { font-size: 8.5px; color: #777; font-family: 'Courier New', monospace; line-height: 1.65; margin-bottom: 14px; }
+.s-product .usps { display: flex; flex-direction: column; gap: 5px; }
+.s-product .usp { background: #0d0d0d; border-left: 2px solid #f8d418; padding: 5px 9px; font-size: 8px; color: #bbb; font-family: 'Courier New', monospace; line-height: 1.4; }
+
+/* ── PRICING SLIDE ── */
+.s-pricing { background: #fff; display: flex; flex-direction: column; }
+.s-pricing .top-band { background: #000; padding: 12px 28px; display: flex; align-items: baseline; gap: 14px; }
+.s-pricing .top-band .pname { font-size: 14px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; }
+.s-pricing .top-band .bname { font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #f8d418; }
+.s-pricing .body { flex: 1; display: flex; }
+.s-pricing .bottle-zone { width: 110px; background: #f6f6f6; display: flex; align-items: center; justify-content: center; padding: 12px 8px; }
+.s-pricing .bottle-zone img { max-height: 100%; max-width: 100%; object-fit: contain; }
+.s-pricing .numbers { flex: 1; display: flex; flex-direction: column; gap: 7px; padding: 16px 14px; }
+.pcard { border: 1px solid #ebebeb; padding: 9px 12px; }
+.pcard .pl { font-size: 7.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #999; margin-bottom: 2px; }
+.pcard .pv { font-size: 20px; font-weight: 700; color: #000; line-height: 1; }
+.pcard .ps { font-size: 7.5px; color: #bbb; font-family: 'Courier New', monospace; margin-top: 2px; }
+.pcard.hl { background: #f8d418; border-color: #f8d418; }
+.pcard.hl .pl { color: rgba(0,0,0,0.4); }
+.pcard.hl .pv { color: #000; }
+.pcard.hl .ps { color: rgba(0,0,0,0.35); }
+.s-pricing .why-col { width: 172px; padding: 16px 16px 16px 6px; display: flex; flex-direction: column; }
+.why-col .wlabel { font-size: 7.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #999; margin-bottom: 10px; }
+.why-row { display: flex; gap: 6px; align-items: flex-start; font-size: 8px; color: #444; font-family: 'Courier New', monospace; line-height: 1.5; margin-bottom: 7px; }
+.ydot { width: 5px; height: 5px; background: #f8d418; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+
+/* ── OVERVIEW SLIDE ── */
+.s-overview { background: #000; display: flex; flex-direction: column; }
+.s-overview .hero { height: 96px; position: relative; overflow: hidden; }
+.s-overview .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; opacity: 0.45; }
+.s-overview .hero .ov-layer { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0.2)); display: flex; align-items: center; padding: 0 28px; gap: 16px; }
+.ov-layer .ov-title { font-size: 18px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; letter-spacing: -0.5px; }
+.ov-layer .ov-bar { width: 3px; height: 28px; background: #f8d418; }
+.ov-layer .ov-sub { font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #f8d418; line-height: 1.6; }
+.s-overview table { width: calc(100% - 56px); margin: 12px 28px 0; border-collapse: collapse; }
+.s-overview thead th { font-size: 7px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #f8d418; padding: 0 8px 7px; text-align: left; border-bottom: 1px solid #1f1f1f; }
+.s-overview tbody td { padding: 7px 8px; font-size: 8.5px; color: #888; font-family: 'Courier New', monospace; border-bottom: 1px solid #141414; }
+.s-overview .pcell { display: flex; align-items: center; gap: 8px; }
+.s-overview .pthumb { width: 24px; height: 24px; object-fit: contain; background: #111; border-radius: 2px; }
+.s-overview .pname { font-family: 'Gill Sans', sans-serif; font-weight: 700; font-style: italic; text-transform: uppercase; font-size: 9px; color: #fff; }
+.mpill { background: #f8d418; color: #000; font-size: 7.5px; font-weight: 700; padding: 2px 7px; letter-spacing: 0.5px; }
+.snum { position: absolute; bottom: 9px; right: 14px; font-size: 8px; color: #333; letter-spacing: 1px; }
+.snum-dark { color: #ccc; }
+</style>
+</head>
+<body>
+
+<!-- LANG TOGGLE -->
+<div class="lang-bar">
+  <span class="lb-label">Language</span>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('nl')">NL</button>
+  </div>
+  <span style="font-size:10px;color:#333;font-family:'Courier New',monospace" id="lang-hint">Switching updates all slide text instantly</span>
+</div>
+
+<!-- SLIDE 1: TITLE -->
+<div class="deck-label">Slide 1 — Title</div>
+<div class="slide s-title">
+  <div class="accent-bar"></div>
+  <div class="body">
+    <div class="text-block">
+      <div class="eyebrow" data-en="Product Pitch · NL Market · 2026" data-nl="Productpresentatie · NL Markt · 2026">Product Pitch · NL Market · 2026</div>
+      <h1>La Mundial<br>Barcelona</h1>
+      <div class="subtitle" data-en="Wine-based aromatised sparkling beverages from the province of Barcelona. Locally grown grapes, rare spices, radically different character." data-nl="Op wijn gebaseerde gearomatiseerde bruisende dranken uit de provincie Barcelona. Lokaal geteelde druiven, zeldzame specerijen, radicaal anders van karakter.">Wine-based aromatised sparkling beverages from the province of Barcelona. Locally grown grapes, rare spices, radically different character.</div>
+    </div>
+    <div class="logo-wrap">
+      <img src="https://lamundialbarcelona.com/wp-content/uploads/2020/11/logo-light.png" alt="La Mundial" />
+    </div>
+  </div>
+  <div class="footer-bar">
+    <span data-en="Presented by " data-nl="Gepresenteerd door "><span class="pdc">Pineapple Drinks Club</span></span>
+    <span data-en="Confidential · For trade use only" data-nl="Vertrouwelijk · Uitsluitend voor handelsdoeleinden">Confidential · For trade use only</span>
+  </div>
+</div>
+
+<!-- SLIDE 3: CLAREA INTRO -->
+<div class="deck-label">Slide 3 — Clarea product introduction</div>
+<div class="slide s-product">
+  <div class="img-panel">
+    <img src="https://lamundialbarcelona.com/wp-content/uploads/2025/11/slide-clarea-new.jpg" alt="Clarea" />
+    <div class="yellow-strip"></div>
+  </div>
+  <div class="content-panel">
+    <div class="prod-brand">La Mundial</div>
+    <h2>Clarea</h2>
+    <div class="tagline" data-en="&ldquo;Escape the ordinary, enjoy a frenzy of freshness&rdquo;" data-nl="&ldquo;Ontsnaap aan het gewone, geniet van een explosie van frisheid&rdquo;">"Escape the ordinary, enjoy a frenzy of freshness"</div>
+    <div class="desc" data-en="Wine-based sparkling beverage with peach notes, fine bubbles and elegant yellow-golden colour. Crafted from locally grown grapes with exotic spices and lemon vivacity. Serve extra cold with a twist of lemon." data-nl="Op wijn gebaseerde bruisende drank met perziknoten, fijne belletjes en een elegante geel-gouden kleur. Gemaakt van lokaal geteelde druiven met exotische specerijen en citroenvivaciteit. Extra koud serveren met een schijfje citroen.">Wine-based sparkling beverage with peach notes, fine bubbles and elegant yellow-golden colour. Crafted from locally grown grapes with exotic spices and lemon vivacity. Serve extra cold with a twist of lemon.</div>
+    <div class="usps">
+      <div class="usp" data-en="🍑 &nbsp;Peachy notes · exotic spices · fine bubbles" data-nl="🍑 &nbsp;Perziknoten · exotische specerijen · fijne belletjes">🍑 &nbsp;Peachy notes · exotic spices · fine bubbles</div>
+      <div class="usp" data-en="🌿 &nbsp;Locally grown grapes · Barcelona province" data-nl="🌿 &nbsp;Lokaal geteelde druiven · provincie Barcelona">🌿 &nbsp;Locally grown grapes · Barcelona province</div>
+      <div class="usp" data-en="✨ &nbsp;Radically different — new category" data-nl="✨ &nbsp;Radicaal anders — nieuwe categorie">✨ &nbsp;Radically different — new category</div>
+    </div>
+  </div>
+  <div class="snum">03 / 07</div>
+</div>
+
+<!-- SLIDE 4: CLAREA PRICING -->
+<div class="deck-label">Slide 4 — Clarea pricing & margins</div>
+<div class="slide s-pricing">
+  <div class="top-band">
+    <div class="pname">Clarea</div>
+    <div class="bname">La Mundial Barcelona</div>
+  </div>
+  <div class="body">
+    <div class="bottle-zone">
+      <img src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/clarea-bottle-331x1024.png" alt="Clarea bottle" />
+    </div>
+    <div class="numbers">
+      <div class="pcard">
+        <div class="pl" data-en="Direct Delivery Price" data-nl="Directe Leveringsprijs">Direct Delivery Price</div>
+        <div class="pv">€5.42</div>
+        <div class="ps" data-en="What you pay · incl. excise duty" data-nl="Wat u betaalt · incl. accijns">What you pay · incl. excise duty</div>
+      </div>
+      <div class="pcard hl">
+        <div class="pl" data-en="Consumer RSP" data-nl="Consument Adviesprijs">Consumer RSP</div>
+        <div class="pv">€8.27</div>
+        <div class="ps" data-en="Shelf price · incl. VAT 21%" data-nl="Schapprijs · incl. BTW 21%">Shelf price · incl. VAT 21%</div>
+      </div>
+      <div class="pcard">
+        <div class="pl" data-en="Your Retail Margin" data-nl="Uw Retailmarge">Your Retail Margin</div>
+        <div class="pv">30%</div>
+        <div class="ps" data-en="Off-trade standard" data-nl="Standaard detailhandel">Off-trade standard</div>
+      </div>
+    </div>
+    <div class="why-col">
+      <div class="wlabel" data-en="Why it sells" data-nl="Waarom het verkoopt">Why it sells</div>
+      <div class="why-row"><div class="ydot"></div><span data-en="New wine-based fizz category — growing consumer demand for lighter options" data-nl="Nieuwe bruisende wijncat egorie — groeiende vraag naar lichtere alternatieven">New wine-based fizz category — growing consumer demand for lighter options</span></div>
+      <div class="why-row"><div class="ydot"></div><span data-en="Distinct golden colour drives impulse purchase off the shelf" data-nl="Opvallende gouden kleur stimuleert impulskopen bij het schap">Distinct golden colour drives impulse purchase off the shelf</span></div>
+      <div class="why-row"><div class="ydot"></div><span data-en="Competitive RSP anchors alongside Cava and Prosecco" data-nl="Concurrerende adviesprijs naast Cava en Prosecco">Competitive RSP anchors alongside Cava and Prosecco</span></div>
+    </div>
+  </div>
+  <div class="snum snum-dark">04 / 07</div>
+</div>
+
+<!-- SLIDE 7: OVERVIEW -->
+<div class="deck-label">Slide 7 — Full product overview</div>
+<div class="slide s-overview">
+  <div class="hero">
+    <img src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/home-white-main.png" alt="La Mundial range" />
+    <div class="ov-layer">
+      <div>
+        <div class="ov-title" data-en="Full Range Overview" data-nl="Volledig Assortimentsoverzicht">Full Range Overview</div>
+      </div>
+      <div class="ov-bar"></div>
+      <div class="ov-sub" data-en="La Mundial Barcelona&#10;NL Market · 2026" data-nl="La Mundial Barcelona&#10;NL Markt · 2026">La Mundial Barcelona<br>NL Market · 2026</div>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th data-en="Product" data-nl="Product">Product</th>
+        <th data-en="Type" data-nl="Type">Type</th>
+        <th data-en="Delivery Price" data-nl="Leveringsprijs">Delivery Price</th>
+        <th data-en="Consumer RSP" data-nl="Consument Adviesprijs">Consumer RSP</th>
+        <th data-en="Retail Margin" data-nl="Retailmarge">Retail Margin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><div class="pcell"><img class="pthumb" src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/clarea-bottle-331x1024.png" /><span class="pname">Clarea</span></div></td>
+        <td data-en="Wine-based sparkling" data-nl="Op wijn gebaseerd bruisend">Wine-based sparkling</td>
+        <td>€5.42</td><td>€8.27</td><td><span class="mpill">30%</span></td>
+      </tr>
+      <tr>
+        <td><div class="pcell"><img class="pthumb" src="https://lamundialbarcelona.com/wp-content/uploads/2020/09/clarea-bottle-331x1024.png" /><span class="pname">Clarita</span></div></td>
+        <td data-en="Wine-based sparkling" data-nl="Op wijn gebaseerd bruisend">Wine-based sparkling</td>
+        <td>€4.85</td><td>€7.55</td><td><span class="mpill">30%</span></td>
+      </tr>
+      <tr>
+        <td><div class="pcell"><img class="pthumb" src="https://lamundialbarcelona.com/wp-content/uploads/2021/09/bottle-rosalea-331x1024.png" /><span class="pname">Rosalea</span></div></td>
+        <td data-en="Wine-based frizzante" data-nl="Op wijn gebaseerde frizzante">Wine-based frizzante</td>
+        <td>€5.42</td><td>€8.27</td><td><span class="mpill">30%</span></td>
+      </tr>
+      <tr>
+        <td><div class="pcell"><img class="pthumb" src="https://lamundialbarcelona.com/wp-content/uploads/2021/09/bottle-rosalea-331x1024.png" /><span class="pname">Rosalita</span></div></td>
+        <td data-en="Wine-based frizzante" data-nl="Op wijn gebaseerde frizzante">Wine-based frizzante</td>
+        <td>€4.85</td><td>€7.55</td><td><span class="mpill">30%</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="snum">07 / 07</div>
+</div>
+
+<script>
+function setLang(lang) {
+  // Update buttons
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim().toLowerCase() === lang);
+  });
+
+  // Update all translatable elements
+  document.querySelectorAll('[data-en]').forEach(el => {
+    const text = el.getAttribute('data-' + lang);
+    if (text) el.innerHTML = text;
+  });
+
+  document.getElementById('lang-hint').textContent =
+    lang === 'nl' ? 'Alle diatekst is bijgewerkt naar het Nederlands' : 'All slide text updated to English';
+}
+</script>
+</body>
+</html>

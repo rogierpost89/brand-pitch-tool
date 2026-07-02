@@ -1,0 +1,87 @@
+<h2>User Flow & UI Design</h2>
+<p class="subtitle">Single-page web app — three steps, one generate button.</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">brand-pitch-tool — Step 1: Brand</div>
+    <div class="mockup-body" style="padding:24px;display:flex;flex-direction:column;gap:20px">
+
+      <!-- Step 1 -->
+      <div style="border:2px solid #4a9eff;border-radius:8px;padding:20px">
+        <div class="label" style="color:#4a9eff;margin-bottom:12px">STEP 1 — BRAND ANALYSIS</div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="mock-input" style="flex:1;font-size:13px">https://pineappledrinkclub.com</div>
+          <div class="mock-button" style="white-space:nowrap">Analyse Brand →</div>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#666">Can't scrape the site?
+          <span style="color:#4a9eff;text-decoration:underline;cursor:pointer">Upload screenshots instead</span>
+        </div>
+
+        <!-- Status bar (appears after clicking) -->
+        <div style="margin-top:14px;background:#0d1117;border-radius:6px;padding:12px 16px;font-family:monospace;font-size:12px;color:#7ee787;display:flex;flex-direction:column;gap:4px">
+          <div>✓ Fetching page…</div>
+          <div>✓ Capturing screenshot…</div>
+          <div style="color:#f0883e">⟳ Claude analysing brand tokens…</div>
+          <div style="color:#444">○ Generating design analysis</div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div style="border:1px solid #333;border-radius:8px;padding:20px;opacity:0.6">
+        <div class="label" style="margin-bottom:12px">STEP 2 — PRODUCT CONTENT</div>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1;border:2px dashed #444;border-radius:6px;padding:16px;text-align:center;font-size:13px;color:#666">
+            Drop <strong>brand.yaml</strong> here<br>
+            <span style="font-size:11px">(intro text, products, USPs)</span>
+          </div>
+          <div style="flex:1;border:2px dashed #444;border-radius:6px;padding:16px;text-align:center;font-size:13px;color:#666">
+            Drop <strong>value-chain.xlsx</strong> here<br>
+            <span style="font-size:11px">(buying price, RSP per product)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div style="border:1px solid #333;border-radius:8px;padding:20px;opacity:0.4">
+        <div class="label" style="margin-bottom:12px">STEP 3 — GENERATE</div>
+        <div class="mock-button" style="width:100%;text-align:center;background:#2a2a2a;color:#555;cursor:not-allowed">Generate Pitch Deck</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">brand-pitch-tool — After generation</div>
+    <div class="mockup-body" style="padding:24px;display:flex;flex-direction:column;gap:20px">
+
+      <!-- Step 1 done -->
+      <div style="border:1px solid #2ea043;border-radius:8px;padding:16px;background:#0d1f0e">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="label" style="color:#2ea043;margin-bottom:4px">✓ BRAND ANALYSED</div>
+            <div style="font-size:13px;color:#ccc">Pineapple Drinks Club — black / #f8d418 / Nexa Heavy Italic</div>
+          </div>
+          <div style="font-size:12px;color:#2ea043;text-decoration:underline;cursor:pointer">View analysis</div>
+        </div>
+      </div>
+
+      <!-- Step 2 done -->
+      <div style="border:1px solid #2ea043;border-radius:8px;padding:16px;background:#0d1f0e">
+        <div class="label" style="color:#2ea043;margin-bottom:4px">✓ FILES LOADED</div>
+        <div style="font-size:13px;color:#ccc">brand.yaml · 4 products &nbsp;|&nbsp; value-chain.xlsx · 4 rows matched</div>
+      </div>
+
+      <!-- Step 3 active -->
+      <div style="border:2px solid #4a9eff;border-radius:8px;padding:20px">
+        <div class="label" style="color:#4a9eff;margin-bottom:12px">STEP 3 — GENERATE</div>
+        <div class="mock-button" style="width:100%;text-align:center">⬇ Download pitch-deck.html</div>
+        <div style="margin-top:10px;font-size:12px;color:#666;text-align:center">Open in browser · Print to PDF to share</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:8px">Does this flow look right? Any steps missing or different from how you'd expect to use it?</p>

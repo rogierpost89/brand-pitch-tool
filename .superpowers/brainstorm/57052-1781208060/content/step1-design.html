@@ -1,0 +1,60 @@
+<h2>Step 1 — redesigned brand card</h2>
+<p class="subtitle">URL and file upload always visible. Either one triggers analysis. Does this look right?</p>
+
+<div class="mockup">
+  <div class="mockup-header">Brand 1 — input area</div>
+  <div class="mockup-body" style="font-family:monospace;background:#0a0a0a;padding:20px;color:#fff">
+
+    <div style="font-size:10px;font-weight:bold;letter-spacing:2px;color:#555;text-transform:uppercase;margin-bottom:12px">Brand 1</div>
+
+    <!-- URL row -->
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input
+        style="flex:1;background:#111;border:1px solid #333;color:#777;font-size:12px;font-family:monospace;padding:9px 12px;outline:none"
+        placeholder="https://brand-website.com"
+        disabled
+      />
+      <button style="background:#f8d418;color:#000;font-size:10px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border:none;cursor:pointer">
+        Analyse
+      </button>
+    </div>
+
+    <!-- Or divider -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="flex:1;height:1px;background:#222"></div>
+      <div style="color:#444;font-size:10px;font-family:monospace">or upload a file</div>
+      <div style="flex:1;height:1px;background:#222"></div>
+    </div>
+
+    <!-- Drop zone — empty state -->
+    <div style="border:1px dashed #333;padding:18px;text-align:center;cursor:pointer;transition:all 0.15s;margin-bottom:6px">
+      <div style="color:#555;font-size:11px;font-family:monospace;margin-bottom:4px">
+        Drop screenshot, PDF, or brand presentation
+      </div>
+      <div style="color:#444;font-size:10px;font-family:monospace">
+        PNG · JPG · PDF — or <span style="color:#f8d418;text-decoration:underline">browse</span>
+      </div>
+    </div>
+    <div style="color:#444;font-size:9px;font-family:monospace;margin-bottom:16px">
+      PPTX? Export as PDF from PowerPoint first.
+    </div>
+
+    <!-- Divider showing "file selected" state below -->
+    <div style="border-top:1px solid #1a1a1a;margin:16px 0"></div>
+    <div style="font-size:9px;color:#444;font-family:monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">↓ after dropping a file:</div>
+
+    <!-- Drop zone — file selected state -->
+    <div style="border:1px dashed #f8d418;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div style="color:#f8d418;font-size:14px">📄</div>
+      <div style="flex:1">
+        <div style="color:#ddd;font-size:11px;font-family:monospace">aperol-brand-guidelines.pdf</div>
+        <div style="color:#555;font-size:10px;font-family:monospace">3.2 MB · PDF</div>
+      </div>
+      <button style="background:none;border:none;color:#444;font-size:11px;cursor:pointer;font-family:monospace">✕</button>
+      <button style="background:#f8d418;color:#000;font-size:10px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;padding:8px 14px;border:none;cursor:pointer">
+        Analyse
+      </button>
+    </div>
+
+  </div>
+</div>
